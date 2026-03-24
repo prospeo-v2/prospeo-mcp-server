@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospeo MCP Server — Docs</title>
+  <style>
+    /* -----------------------------------------------------------------------
+       Design tokens
+    ----------------------------------------------------------------------- */
+    :root {
+      --color-brand:        #4f46e5;
+      --color-brand-light:  #818cf8;
+      --color-brand-dim:    #eef2ff;
+      --color-success:      #16a34a;
+      --color-success-dim:  #dcfce7;
+      --color-warning:      #d97706;
+      --color-warning-dim:  #fef3c7;
+      --color-error:        #dc2626;
+      --color-error-dim:    #fee2e2;
+
+      --color-bg:           #ffffff;
+      --color-surface:      #f8fafc;
+      --color-border:       #e2e8f0;
+      --color-border-soft:  #f1f5f9;
+
+      --color-text:         #0f172a;
+      --color-text-muted:   #64748b;
+      --color-text-light:   #94a3b8;
+
+      --sidebar-width:      260px;
+      --content-max:        780px;
+      --radius:             8px;
+      --radius-lg:          12px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, "Courier New", monospace;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+      --shadow:    0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+    }
+
+    /* -----------------------------------------------------------------------
+       Reset & base
+    ----------------------------------------------------------------------- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--font-sans);
+      color: var(--color-text);
+      background: var(--color-bg);
+      line-height: 1.6;
+    }
+
+    a { color: var(--color-brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* -----------------------------------------------------------------------
+       Top bar
+    ----------------------------------------------------------------------- */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; padding: 0 24px;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 17px; color: var(--color-text);
+      text-decoration: none;
+    }
+
+    .topbar-logo svg { flex-shrink: 0; }
+
+    .topbar-badge {
+      background: var(--color-brand-dim);
+      color: var(--color-brand);
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 20px;
+      letter-spacing: .3px;
+    }
+
+    .topbar-sep { flex: 1; }
+
+    .topbar-link {
+      font-size: 14px; color: var(--color-text-muted);
+      padding: 6px 12px; border-radius: var(--radius);
+      transition: background .15s, color .15s;
+    }
+    .topbar-link:hover { background: var(--color-surface); color: var(--color-text); text-decoration: none; }
+
+    .topbar-cta {
+      background: var(--color-brand);
+      color: #fff;
+      font-size: 13px; font-weight: 600;
+      padding: 7px 16px; border-radius: var(--radius);
+      transition: background .15s;
+    }
+    .topbar-cta:hover { background: #4338ca; text-decoration: none; }
+
+    /* -----------------------------------------------------------------------
+       Layout shell
+    ----------------------------------------------------------------------- */
+    .layout {
+      display: flex;
+      padding-top: 60px;
+      min-height: 100vh;
+    }
+
+    /* -----------------------------------------------------------------------
+       Sidebar
+    ----------------------------------------------------------------------- */
+    .sidebar {
+      position: fixed; top: 60px; left: 0; bottom: 0;
+      width: var(--sidebar-width);
+      overflow-y: auto;
+      border-right: 1px solid var(--color-border);
+      background: var(--color-surface);
+      padding: 24px 0 40px;
+    }
+
+    .sidebar-section { margin-bottom: 24px; }
+
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--color-text-light);
+      padding: 0 20px; margin-bottom: 6px;
+    }
+
+    .sidebar-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 20px;
+      font-size: 13.5px; color: var(--color-text-muted);
+      border-left: 2px solid transparent;
+      transition: color .15s, background .15s, border-color .15s;
+      cursor: pointer;
+    }
+    .sidebar-link:hover { color: var(--color-text); background: #eef2ff40; text-decoration: none; }
+    .sidebar-link.active {
+      color: var(--color-brand);
+      border-left-color: var(--color-brand);
+      background: var(--color-brand-dim);
+      font-weight: 600;
+    }
+
+    .sidebar-link .dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* -----------------------------------------------------------------------
+       Main content
+    ----------------------------------------------------------------------- */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 52px 52px 80px;
+      max-width: calc(var(--sidebar-width) + var(--content-max) + 104px);
+    }
+
+    /* -----------------------------------------------------------------------
+       Section spacing
+    ----------------------------------------------------------------------- */
+    .section { margin-bottom: 72px; scroll-margin-top: 80px; }
+
+    /* -----------------------------------------------------------------------
+       Typography
+    ----------------------------------------------------------------------- */
+    .page-title {
+      font-size: 34px; font-weight: 800; letter-spacing: -.5px;
+      line-height: 1.2; margin-bottom: 14px; color: var(--color-text);
+    }
+
+    .page-subtitle {
+      font-size: 17px; color: var(--color-text-muted); max-width: 580px;
+      line-height: 1.65; margin-bottom: 32px;
+    }
+
+    h2 {
+      font-size: 22px; font-weight: 700; color: var(--color-text);
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    h3 {
+      font-size: 16px; font-weight: 700; color: var(--color-text);
+      margin-bottom: 10px; margin-top: 24px;
+    }
+
+    p { color: var(--color-text-muted); margin-bottom: 14px; font-size: 14.5px; line-height: 1.7; }
+
+    /* -----------------------------------------------------------------------
+       Hero stats strip
+    ----------------------------------------------------------------------- */
+    .stats-row {
+      display: flex; gap: 16px; margin-bottom: 40px; flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1; min-width: 140px;
+      background: var(--color-brand-dim);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+    }
+
+    .stat-card .stat-val {
+      font-size: 24px; font-weight: 800; color: var(--color-brand); line-height: 1;
+    }
+
+    .stat-card .stat-label {
+      font-size: 12px; color: var(--color-brand-light); margin-top: 4px;
+    }
+
+    /* -----------------------------------------------------------------------
+       Callout / admonition
+    ----------------------------------------------------------------------- */
+    .callout {
+      display: flex; gap: 12px;
+      padding: 14px 16px; border-radius: var(--radius);
+      margin-bottom: 20px; font-size: 13.5px;
+    }
+    .callout.info  { background: var(--color-brand-dim);   border: 1px solid #c7d2fe; color: #3730a3; }
+    .callout.tip   { background: var(--color-success-dim); border: 1px solid #bbf7d0; color: #15803d; }
+    .callout.warn  { background: var(--color-warning-dim); border: 1px solid #fde68a; color: #92400e; }
+
+    .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .callout p { margin: 0; color: inherit; font-size: 13.5px; }
+
+    /* -----------------------------------------------------------------------
+       Step list
+    ----------------------------------------------------------------------- */
+    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 20px; }
+
+    .step {
+      display: flex; gap: 16px;
+      padding: 20px; background: var(--color-surface);
+      border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+    }
+
+    .step-num {
+      counter-increment: step;
+      content: counter(step);
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--color-brand); color: #fff;
+      border-radius: 50%; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+
+    .step-body h3 { margin-top: 0; font-size: 14.5px; }
+    .step-body p { margin-bottom: 0; font-size: 13.5px; }
+
+    /* -----------------------------------------------------------------------
+       Install tabs
+    ----------------------------------------------------------------------- */
+    .tab-bar {
+      display: flex; gap: 2px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 4px 4px 0;
+      border-bottom: none;
+    }
+
+    .tab-btn {
+      padding: 7px 16px; font-size: 13px; font-weight: 500;
+      border-radius: 6px 6px 0 0; cursor: pointer;
+      background: transparent; border: none; color: var(--color-text-muted);
+      transition: color .15s, background .15s;
+    }
+    .tab-btn:hover { color: var(--color-text); }
+    .tab-btn.active { background: #1e1e2e; color: #cdd6f4; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* -----------------------------------------------------------------------
+       Code blocks
+    ----------------------------------------------------------------------- */
+    .code-wrap {
+      background: #1e1e2e; border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden; border: 1px solid #313244;
+      margin-bottom: 20px;
+    }
+
+    .code-wrap.standalone {
+      border-radius: var(--radius);
+    }
+
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 16px;
+      background: #181825; border-bottom: 1px solid #313244;
+    }
+
+    .code-lang {
+      font-size: 11px; font-weight: 600; color: #6c7086;
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+
+    .code-copy {
+      font-size: 11px; color: #6c7086; cursor: pointer;
+      background: none; border: none; padding: 2px 6px;
+      border-radius: 4px; transition: color .15s, background .15s;
+      font-family: var(--font-sans);
+    }
+    .code-copy:hover { color: #cdd6f4; background: #313244; }
+
+    pre {
+      padding: 16px 20px;
+      overflow-x: auto; font-family: var(--font-mono);
+      font-size: 13px; line-height: 1.65;
+      color: #cdd6f4; background: transparent;
+    }
+
+    /* Catppuccin-inspired token colours */
+    .tk-k  { color: #cba6f7; } /* keyword / bool */
+    .tk-s  { color: #a6e3a1; } /* string */
+    .tk-n  { color: #89b4fa; } /* property name */
+    .tk-v  { color: #fab387; } /* value / number */
+    .tk-c  { color: #6c7086; font-style: italic; } /* comment */
+    .tk-p  { color: #cdd6f4; } /* punctuation */
+    .tk-t  { color: #f38ba8; } /* type / class */
+
+    code {
+      font-family: var(--font-mono); font-size: 12.5px;
+      background: #f1f5f9; color: #7c3aed;
+      padding: 1px 5px; border-radius: 4px;
+    }
+
+    /* -----------------------------------------------------------------------
+       Tool cards
+    ----------------------------------------------------------------------- */
+    .tool-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tool-header {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 20px 24px;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .tool-icon {
+      width: 40px; height: 40px; border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+
+    .tool-meta { flex: 1; }
+
+    .tool-name {
+      font-family: var(--font-mono); font-size: 15px; font-weight: 700;
+      color: var(--color-text); margin-bottom: 4px;
+    }
+
+    .tool-desc { font-size: 13.5px; color: var(--color-text-muted); line-height: 1.55; }
+
+    .tool-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+      white-space: nowrap; align-self: flex-start;
+    }
+    .badge-free    { background: var(--color-success-dim); color: var(--color-success); border: 1px solid #bbf7d0; }
+    .badge-credits { background: var(--color-warning-dim); color: var(--color-warning); border: 1px solid #fde68a; }
+    .badge-extra   { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+
+    .tool-body { padding: 24px; }
+
+    /* -----------------------------------------------------------------------
+       Parameter tables
+    ----------------------------------------------------------------------- */
+    .param-section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: var(--color-text-light);
+      margin-bottom: 10px; margin-top: 20px;
+    }
+    .param-section-label:first-child { margin-top: 0; }
+
+    .param-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px; margin-bottom: 4px;
+    }
+
+    .param-table th {
+      text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--color-text-light);
+      padding: 0 12px 8px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .param-table td {
+      padding: 10px 12px; vertical-align: top;
+      border-bottom: 1px solid var(--color-border-soft);
+    }
+
+    .param-table tr:last-child td { border-bottom: none; }
+
+    .param-name {
+      font-family: var(--font-mono); font-size: 12.5px;
+      color: var(--color-brand); white-space: nowrap;
+    }
+
+    .param-type {
+      font-family: var(--font-mono); font-size: 11.5px;
+      background: #f1f5f9; color: #475569;
+      padding: 2px 6px; border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .param-req {
+      font-size: 11px; font-weight: 600;
+      padding: 2px 7px; border-radius: 10px; white-space: nowrap;
+    }
+    .param-req.req  { background: #fce7f3; color: #be185d; }
+    .param-req.opt  { background: #f1f5f9; color: #64748b; }
+
+    .param-desc { color: var(--color-text-muted); line-height: 1.5; font-size: 13px; }
+    .param-desc .default { color: var(--color-text-light); font-size: 12px; margin-top: 2px; }
+
+    /* -----------------------------------------------------------------------
+       Response / example panels
+    ----------------------------------------------------------------------- */
+    .example-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 800px) { .example-grid { grid-template-columns: 1fr; } }
+
+    .example-block { }
+
+    .example-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: var(--color-text-light);
+      margin-bottom: 6px;
+    }
+
+    /* -----------------------------------------------------------------------
+       Error table
+    ----------------------------------------------------------------------- */
+    .error-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px; border: 1px solid var(--color-border);
+      border-radius: var(--radius); overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .error-table th {
+      text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--color-text-light);
+      padding: 10px 16px; background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .error-table td {
+      padding: 10px 16px; vertical-align: top;
+      border-bottom: 1px solid var(--color-border-soft);
+    }
+    .error-table tr:last-child td { border-bottom: none; }
+
+    .error-code {
+      font-family: var(--font-mono); font-size: 12px;
+      color: var(--color-error); white-space: nowrap;
+    }
+
+    .severity {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+    }
+    .sev-low      { background: var(--color-success-dim); color: var(--color-success); }
+    .sev-medium   { background: var(--color-warning-dim); color: var(--color-warning); }
+    .sev-high     { background: #fee2e2; color: #b91c1c; }
+    .sev-critical { background: #f3e8ff; color: #7e22ce; }
+
+    /* -----------------------------------------------------------------------
+       Install snippets
+    ----------------------------------------------------------------------- */
+    .install-tabs-wrapper { margin-bottom: 0; }
+
+    /* -----------------------------------------------------------------------
+       Responsive
+    ----------------------------------------------------------------------- */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 32px 24px 60px; }
+    }
+
+    /* -----------------------------------------------------------------------
+       Scroll-spy active states via JS
+    ----------------------------------------------------------------------- */
+    .sidebar-link { transition: all .2s; }
+
+    /* -----------------------------------------------------------------------
+       Footer
+    ----------------------------------------------------------------------- */
+    .doc-footer {
+      text-align: center; padding: 32px;
+      border-top: 1px solid var(--color-border);
+      font-size: 13px; color: var(--color-text-light);
+      margin-top: 40px;
+    }
+    .doc-footer a { color: var(--color-text-muted); }
+    .doc-footer a:hover { color: var(--color-brand); }
+  </style>
+</head>
+<body>
+
+<!-- =========================================================================
+     TOP BAR
+========================================================================== -->
+<header class="topbar">
+  <a class="topbar-logo" href="#">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect width="24" height="24" rx="6" fill="#4f46e5"/>
+      <path d="M7 8h10M7 12h7M7 16h4" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    Prospeo
+  </a>
+  <span class="topbar-badge">MCP Server</span>
+  <span class="topbar-sep"></span>
+  <a class="topbar-link" href="https://app.prospeo.io/api-management" target="_blank">API Keys</a>
+  <a class="topbar-link" href="https://prospeo.io" target="_blank">prospeo.io</a>
+  <a class="topbar-cta" href="https://app.prospeo.io" target="_blank">Get Started →</a>
+</header>
+
+<div class="layout">
+
+  <!-- =======================================================================
+       SIDEBAR
+  ======================================================================== -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <a class="sidebar-link active" href="#introduction">Introduction</a>
+      <a class="sidebar-link" href="#quickstart">Quick Start</a>
+      <a class="sidebar-link" href="#authentication">Authentication</a>
+      <a class="sidebar-link" href="#configuration">Configuration</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tools</div>
+      <a class="sidebar-link" href="#enrich-person">
+        <span class="dot" style="background:#a78bfa"></span>enrich_person
+      </a>
+      <a class="sidebar-link" href="#enrich-company">
+        <span class="dot" style="background:#60a5fa"></span>enrich_company
+      </a>
+      <a class="sidebar-link" href="#search-person">
+        <span class="dot" style="background:#34d399"></span>search_person
+      </a>
+      <a class="sidebar-link" href="#search-company">
+        <span class="dot" style="background:#f97316"></span>search_company
+      </a>
+      <a class="sidebar-link" href="#get-account-info">
+        <span class="dot" style="background:#94a3b8"></span>get_account_info
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <a class="sidebar-link" href="#filters">Filter Reference</a>
+      <a class="sidebar-link" href="#errors">Error Codes</a>
+      <a class="sidebar-link" href="#credits">Credit Usage</a>
+    </div>
+  </aside>
+
+  <!-- =======================================================================
+       MAIN CONTENT
+  ======================================================================== -->
+  <main class="main">
+
+    <!-- =====================================================================
+         INTRODUCTION
+    ====================================================================== -->
+    <section class="section" id="introduction">
+      <h1 class="page-title">Prospeo MCP Server</h1>
+      <p class="page-subtitle">
+        Bring Prospeo's B2B lead enrichment and people search directly into your AI workflows.
+        Find professional emails, mobile numbers, and full company intelligence — without leaving your AI chat.
+      </p>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val">5</div>
+          <div class="stat-label">MCP Tools</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">REST</div>
+          <div class="stat-label">Underlying API</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">Node 18+</div>
+          <div class="stat-label">Runtime</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">stdio</div>
+          <div class="stat-label">Transport</div>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">💡</span>
+        <p>The Prospeo MCP Server uses the <strong>stdio</strong> transport — it runs as a local subprocess managed by your MCP client (Claude Desktop, Cursor, VS Code, etc.) and communicates over standard I/O.</p>
+      </div>
+
+      <h3>What you can do</h3>
+      <table class="param-table" style="margin-top:10px">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Tool</th>
+            <th>Credits</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="param-desc">Find a person's professional email and/or mobile</td>
+            <td><span class="param-name">enrich_person</span></td>
+            <td class="param-desc">1 credit (email) · 10 credits (mobile)</td>
+          </tr>
+          <tr>
+            <td class="param-desc">Get full company profile (tech stack, funding, headcount…)</td>
+            <td><span class="param-name">enrich_company</span></td>
+            <td class="param-desc">1 credit</td>
+          </tr>
+          <tr>
+            <td class="param-desc">Search professionals with filters (title, location, seniority…)</td>
+            <td><span class="param-name">search_person</span></td>
+            <td class="param-desc">1 credit / page</td>
+          </tr>
+          <tr>
+            <td class="param-desc">Search companies with filters (industry, size, revenue…)</td>
+            <td><span class="param-name">search_company</span></td>
+            <td class="param-desc">1 credit / page</td>
+          </tr>
+          <tr>
+            <td class="param-desc">Check account credits, plan, and renewal date</td>
+            <td><span class="param-name">get_account_info</span></td>
+            <td class="param-desc">Free</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- =====================================================================
+         QUICK START
+    ====================================================================== -->
+    <section class="section" id="quickstart">
+      <h2>Quick Start</h2>
+      <p>Get the MCP server running in under two minutes. You need <strong>Node.js 18+</strong> and a <strong>Prospeo API key</strong>.</p>
+
+      <!-- Claude Desktop -->
+      <h3>Claude Desktop</h3>
+      <p>Open <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows) and add:</p>
+
+      <div class="code-wrap standalone">
+        <div class="code-header">
+          <span class="code-lang">json — claude_desktop_config.json</span>
+          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>{
+  <span class="tk-n">"mcpServers"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"prospeo"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"command"</span><span class="tk-p">:</span> <span class="tk-s">"npx"</span><span class="tk-p">,</span>
+      <span class="tk-n">"args"</span><span class="tk-p">:</span> <span class="tk-p">[</span><span class="tk-s">"-y"</span><span class="tk-p">,</span> <span class="tk-s">"@prospeo/mcp-server"</span><span class="tk-p">],</span>
+      <span class="tk-n">"env"</span><span class="tk-p">: {</span>
+        <span class="tk-n">"PROSPEO_API_KEY"</span><span class="tk-p">:</span> <span class="tk-s">"your_api_key_here"</span>
+      <span class="tk-p">}</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+      </div>
+
+      <p>Restart Claude Desktop. The Prospeo tools will appear in the tools menu.</p>
+
+      <!-- Claude CLI -->
+      <h3>Claude Code (CLI)</h3>
+      <div class="code-wrap standalone">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="tk-c"># Add the MCP server with your API key</span>
+claude mcp add prospeo \
+  --env <span class="tk-n">PROSPEO_API_KEY</span>=your_api_key_here \
+  -- npx -y @prospeo/mcp-server</pre>
+      </div>
+
+      <!-- Cursor / VS Code -->
+      <h3>Cursor / VS Code</h3>
+      <p>Add to your <code>.cursor/mcp.json</code> or VS Code MCP settings:</p>
+      <div class="code-wrap standalone">
+        <div class="code-header">
+          <span class="code-lang">json — .cursor/mcp.json</span>
+          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>{
+  <span class="tk-n">"mcpServers"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"prospeo"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"command"</span><span class="tk-p">:</span> <span class="tk-s">"npx"</span><span class="tk-p">,</span>
+      <span class="tk-n">"args"</span><span class="tk-p">:</span> <span class="tk-p">[</span><span class="tk-s">"-y"</span><span class="tk-p">,</span> <span class="tk-s">"@prospeo/mcp-server"</span><span class="tk-p">],</span>
+      <span class="tk-n">"env"</span><span class="tk-p">: {</span>
+        <span class="tk-n">"PROSPEO_API_KEY"</span><span class="tk-p">:</span> <span class="tk-s">"your_api_key_here"</span>
+      <span class="tk-p">}</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">✅</span>
+        <p>Verify the server is working by asking your AI: <em>"Check my Prospeo account credits"</em>. It should call <code>get_account_info</code> and display your plan details.</p>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         AUTHENTICATION
+    ====================================================================== -->
+    <section class="section" id="authentication">
+      <h2>Authentication</h2>
+      <p>All requests to the Prospeo API are authenticated with your API key, passed as the <code>X-KEY</code> HTTP header. The MCP server handles this automatically — you only need to provide the key as an environment variable.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Get your API key</h3>
+            <p>Log in to <a href="https://app.prospeo.io/api-management" target="_blank">app.prospeo.io → API Management</a> and generate or copy your key.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Set PROSPEO_API_KEY</h3>
+            <p>Pass the key as an environment variable when registering the MCP server (see Quick Start). The variable name must be exactly <code>PROSPEO_API_KEY</code>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Key is validated at startup</h3>
+            <p>The server fails immediately with a clear message if <code>PROSPEO_API_KEY</code> is missing or empty — so you'll know right away if something is wrong.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:24px">
+        <span class="callout-icon">⚠️</span>
+        <p>Never commit your API key to source control. Use environment variable injection via your MCP client's config — not hardcoded strings.</p>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         CONFIGURATION
+    ====================================================================== -->
+    <section class="section" id="configuration">
+      <h2>Configuration</h2>
+      <p>All options are set via environment variables. Only <code>PROSPEO_API_KEY</code> is required.</p>
+
+      <table class="param-table" style="margin-top:4px">
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="param-name">PROSPEO_API_KEY</span></td>
+            <td><span class="param-req req">required</span></td>
+            <td class="param-desc">Your Prospeo API key</td>
+          </tr>
+          <tr>
+            <td><span class="param-name">PROSPEO_API_BASE_URL</span></td>
+            <td><code>https://api.prospeo.io</code></td>
+            <td class="param-desc">Base URL for the Prospeo API. Override for testing against staging.</td>
+          </tr>
+          <tr>
+            <td><span class="param-name">PROSPEO_TIMEOUT</span></td>
+            <td><code>30000</code></td>
+            <td class="param-desc">HTTP request timeout in milliseconds.</td>
+          </tr>
+          <tr>
+            <td><span class="param-name">LOG_LEVEL</span></td>
+            <td><code>INFO</code></td>
+            <td class="param-desc">Log verbosity: <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, or <code>ERROR</code>. Logs go to stderr.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- =====================================================================
+         TOOL: enrich_person
+    ====================================================================== -->
+    <section class="section" id="enrich-person">
+      <h2>Tools</h2>
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-icon" style="background:#f3f0ff">🔍</div>
+          <div class="tool-meta">
+            <div class="tool-name">enrich_person</div>
+            <div class="tool-desc">
+              Find a person's professional email address and/or mobile phone number.
+              Provide at least one identifying field — LinkedIn URL is the most reliable.
+            </div>
+          </div>
+          <span class="tool-badge badge-credits">1 or 10 credits</span>
+        </div>
+        <div class="tool-body">
+
+          <div class="param-section-label">Parameters</div>
+          <table class="param-table">
+            <thead>
+              <tr><th>Name</th><th>Type</th><th></th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">linkedin_url</span></td>
+                <td><span class="param-type">string (url)</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">LinkedIn profile URL, e.g. <code>https://linkedin.com/in/johndoe</code></td>
+              </tr>
+              <tr>
+                <td><span class="param-name">email</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Person's known email address (used as a lookup key)</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">first_name</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">First name (combine with <code>company_name</code> or <code>company_website</code>)</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">last_name</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Last name</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">full_name</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Full name — alternative to first_name + last_name</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">company_name</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Current employer name</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">company_website</span></td>
+                <td><span class="param-type">string (url)</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Company website, e.g. <code>https://acme.com</code></td>
+              </tr>
+              <tr>
+                <td><span class="param-name">company_linkedin_url</span></td>
+                <td><span class="param-type">string (url)</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Company LinkedIn URL</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">only_verified_email</span></td>
+                <td><span class="param-type">boolean</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Only return results when a verified email is found. <div class="default">Default: false</div></td>
+              </tr>
+              <tr>
+                <td><span class="param-name">enrich_mobile</span></td>
+                <td><span class="param-type">boolean</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Also look up the person's mobile phone number (costs 10 credits total; email is included at no extra cost). <div class="default">Default: false</div></td>
+              </tr>
+              <tr>
+                <td><span class="param-name">only_verified_mobile</span></td>
+                <td><span class="param-type">boolean</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Only return results when a verified mobile is found. Automatically enables <code>enrich_mobile</code>. <div class="default">Default: false</div></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout info" style="margin-top:16px">
+            <span class="callout-icon">ℹ️</span>
+            <p>Provide at least one of: <code>linkedin_url</code>, <code>email</code>, or (<code>first_name</code>/<code>full_name</code> + <code>company_name</code>/<code>company_website</code>). Requests with no identifying data are rejected.</p>
+          </div>
+
+          <div class="example-grid">
+            <div class="example-block">
+              <div class="example-label">Example — by LinkedIn URL</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"linkedin_url"</span><span class="tk-p">:</span>
+    <span class="tk-s">"https://linkedin.com/in/johndoe"</span><span class="tk-p">,</span>
+  <span class="tk-n">"enrich_mobile"</span><span class="tk-p">:</span> <span class="tk-k">true</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+            <div class="example-block">
+              <div class="example-label">Example — by name + company</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"first_name"</span><span class="tk-p">:</span> <span class="tk-s">"Jane"</span><span class="tk-p">,</span>
+  <span class="tk-n">"last_name"</span><span class="tk-p">:</span> <span class="tk-s">"Smith"</span><span class="tk-p">,</span>
+  <span class="tk-n">"company_website"</span><span class="tk-p">:</span>
+    <span class="tk-s">"https://acme.com"</span><span class="tk-p">,</span>
+  <span class="tk-n">"only_verified_email"</span><span class="tk-p">:</span> <span class="tk-k">true</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="param-section-label" style="margin-top:20px">Response (success)</div>
+          <div class="code-wrap standalone">
+            <div class="code-header">
+              <span class="code-lang">json</span>
+              <button class="code-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre>{
+  <span class="tk-n">"success"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+  <span class="tk-n">"data"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"found"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+    <span class="tk-n">"free_enrichment"</span><span class="tk-p">:</span> <span class="tk-k">false</span><span class="tk-p">,</span>
+    <span class="tk-n">"person"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"person_id"</span><span class="tk-p">:</span> <span class="tk-s">"abc123"</span><span class="tk-p">,</span>
+      <span class="tk-n">"full_name"</span><span class="tk-p">:</span>  <span class="tk-s">"John Doe"</span><span class="tk-p">,</span>
+      <span class="tk-n">"current_job_title"</span><span class="tk-p">:</span> <span class="tk-s">"VP of Engineering"</span><span class="tk-p">,</span>
+      <span class="tk-n">"email"</span><span class="tk-p">: {</span>
+        <span class="tk-n">"email"</span><span class="tk-p">:</span> <span class="tk-s">"john@acme.com"</span><span class="tk-p">,</span>
+        <span class="tk-n">"verification_status"</span><span class="tk-p">:</span> <span class="tk-s">"VERIFIED"</span>
+      <span class="tk-p">},</span>
+      <span class="tk-n">"mobile"</span><span class="tk-p">:</span> <span class="tk-p">{</span>
+        <span class="tk-n">"number"</span><span class="tk-p">:</span> <span class="tk-s">"+14155552671"</span><span class="tk-p">,</span>
+        <span class="tk-n">"country"</span><span class="tk-p">:</span> <span class="tk-s">"US"</span>
+      <span class="tk-p">},</span>
+      <span class="tk-n">"location"</span><span class="tk-p">: {</span>
+        <span class="tk-n">"city"</span><span class="tk-p">:</span> <span class="tk-s">"San Francisco"</span><span class="tk-p">,</span>
+        <span class="tk-n">"country"</span><span class="tk-p">:</span> <span class="tk-s">"United States"</span>
+      <span class="tk-p">},</span>
+      <span class="tk-n">"skills"</span><span class="tk-p">:</span> <span class="tk-p">[</span><span class="tk-s">"TypeScript"</span><span class="tk-p">,</span> <span class="tk-s">"AWS"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"company"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"company_id"</span><span class="tk-p">:</span> <span class="tk-s">"xyz789"</span><span class="tk-p">,</span>
+      <span class="tk-n">"name"</span><span class="tk-p">:</span> <span class="tk-s">"Acme Inc"</span><span class="tk-p">,</span>
+      <span class="tk-n">"website"</span><span class="tk-p">:</span> <span class="tk-s">"https://acme.com"</span><span class="tk-p">,</span>
+      <span class="tk-n">"industry"</span><span class="tk-p">:</span> <span class="tk-s">"SaaS"</span><span class="tk-p">,</span>
+      <span class="tk-n">"employee_range"</span><span class="tk-p">:</span> <span class="tk-s">"51-200"</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+          </div>
+
+        </div>
+      </div><!-- /tool-card enrich_person -->
+
+    </section>
+
+    <!-- =====================================================================
+         TOOL: enrich_company
+    ====================================================================== -->
+    <section class="section" id="enrich-company">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-icon" style="background:#eff6ff">🏢</div>
+          <div class="tool-meta">
+            <div class="tool-name">enrich_company</div>
+            <div class="tool-desc">
+              Get a full company profile — headcount, industry, revenue range, tech stack,
+              funding history, HQ phone, and social links.
+            </div>
+          </div>
+          <span class="tool-badge badge-credits">1 credit</span>
+        </div>
+        <div class="tool-body">
+
+          <div class="param-section-label">Parameters</div>
+          <table class="param-table">
+            <thead>
+              <tr><th>Name</th><th>Type</th><th></th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">company_website</span></td>
+                <td><span class="param-type">string (url)</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Company website URL — recommended for highest accuracy. e.g. <code>https://acme.com</code></td>
+              </tr>
+              <tr>
+                <td><span class="param-name">company_name</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Company name, e.g. <code>Acme Inc</code></td>
+              </tr>
+              <tr>
+                <td><span class="param-name">company_linkedin_url</span></td>
+                <td><span class="param-type">string (url)</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Company LinkedIn URL, e.g. <code>https://linkedin.com/company/acme</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout info" style="margin-top:16px">
+            <span class="callout-icon">ℹ️</span>
+            <p>Provide at least one of the three fields. Using <code>company_website</code> gives the most accurate match.</p>
+          </div>
+
+          <div class="example-grid">
+            <div class="example-block">
+              <div class="example-label">Example request</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"company_website"</span><span class="tk-p">:</span>
+    <span class="tk-s">"https://stripe.com"</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+            <div class="example-block">
+              <div class="example-label">Example response</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"success"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+  <span class="tk-n">"data"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"found"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+    <span class="tk-n">"company"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"name"</span><span class="tk-p">:</span>  <span class="tk-s">"Stripe"</span><span class="tk-p">,</span>
+      <span class="tk-n">"industry"</span><span class="tk-p">:</span> <span class="tk-s">"Fintech"</span><span class="tk-p">,</span>
+      <span class="tk-n">"employee_range"</span><span class="tk-p">:</span> <span class="tk-s">"1001-5000"</span><span class="tk-p">,</span>
+      <span class="tk-n">"revenue_range_printed"</span><span class="tk-p">:</span> <span class="tk-s">"$1B+"</span><span class="tk-p">,</span>
+      <span class="tk-n">"founded"</span><span class="tk-p">:</span> <span class="tk-v">2010</span><span class="tk-p">,</span>
+      <span class="tk-n">"funding"</span><span class="tk-p">: {</span>
+        <span class="tk-n">"total_raised"</span><span class="tk-p">:</span> <span class="tk-v">2200000000</span>
+      <span class="tk-p">}</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="param-section-label" style="margin-top:20px">Company object fields</div>
+          <table class="param-table">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">company_id</span></td><td><span class="param-type">string</span></td><td class="param-desc">Prospeo internal company ID</td></tr>
+              <tr><td><span class="param-name">name</span></td><td><span class="param-type">string</span></td><td class="param-desc">Company legal name</td></tr>
+              <tr><td><span class="param-name">website / domain</span></td><td><span class="param-type">string</span></td><td class="param-desc">Primary website and domain</td></tr>
+              <tr><td><span class="param-name">description / description_ai</span></td><td><span class="param-type">string</span></td><td class="param-desc">Human-written and AI-generated description</td></tr>
+              <tr><td><span class="param-name">industry</span></td><td><span class="param-type">string</span></td><td class="param-desc">Primary industry category</td></tr>
+              <tr><td><span class="param-name">employee_count / employee_range</span></td><td><span class="param-type">number / string</span></td><td class="param-desc">Headcount and banded range (e.g. "51-200")</td></tr>
+              <tr><td><span class="param-name">revenue_range / revenue_range_printed</span></td><td><span class="param-type">object / string</span></td><td class="param-desc">Revenue band (min/max) and human label</td></tr>
+              <tr><td><span class="param-name">founded</span></td><td><span class="param-type">number</span></td><td class="param-desc">Year founded</td></tr>
+              <tr><td><span class="param-name">technology</span></td><td><span class="param-type">object</span></td><td class="param-desc">Tech stack detected on company's website</td></tr>
+              <tr><td><span class="param-name">funding</span></td><td><span class="param-type">object</span></td><td class="param-desc">total_raised, last_round, last_round_date</td></tr>
+              <tr><td><span class="param-name">linkedin_url / twitter_url / …</span></td><td><span class="param-type">string</span></td><td class="param-desc">Social profile links</td></tr>
+              <tr><td><span class="param-name">phone_hq</span></td><td><span class="param-type">object</span></td><td class="param-desc">HQ phone number and country</td></tr>
+              <tr><td><span class="param-name">keywords</span></td><td><span class="param-type">string[]</span></td><td class="param-desc">Descriptive keywords</td></tr>
+              <tr><td><span class="param-name">logo_url</span></td><td><span class="param-type">string</span></td><td class="param-desc">Company logo image URL</td></tr>
+              <tr><td><span class="param-name">job_postings</span></td><td><span class="param-type">object</span></td><td class="param-desc">Active job posting metadata</td></tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div><!-- /tool-card enrich_company -->
+
+    </section>
+
+    <!-- =====================================================================
+         TOOL: search_person
+    ====================================================================== -->
+    <section class="section" id="search-person">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-icon" style="background:#f0fdf4">👥</div>
+          <div class="tool-meta">
+            <div class="tool-name">search_person</div>
+            <div class="tool-desc">
+              Search Prospeo's database of professionals using structured filters.
+              Returns up to 25 results per page, paginated across up to 1 000 pages.
+            </div>
+          </div>
+          <span class="tool-badge badge-credits">1 credit / page</span>
+        </div>
+        <div class="tool-body">
+
+          <div class="param-section-label">Parameters</div>
+          <table class="param-table">
+            <thead><tr><th>Name</th><th>Type</th><th></th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">filters</span></td>
+                <td><span class="param-type">object</span></td>
+                <td><span class="param-req req">required</span></td>
+                <td class="param-desc">Structured search filters. At least one positive (include) filter is required. See <a href="#filters">Filter Reference</a> for all keys and shapes.</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">page</span></td>
+                <td><span class="param-type">integer</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Page number 1–1000. Each page returns up to 25 results. <div class="default">Default: 1</div></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="param-section-label">Person filter keys</div>
+          <table class="param-table">
+            <thead><tr><th>Key</th><th>Shape</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">person_name</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">Filter by full name. Max 500 items per array.</td></tr>
+              <tr><td><span class="param-name">person_name_or_job_title</span></td><td><span class="param-type">string</span></td><td class="param-desc">Free-text search across both name and job title fields.</td></tr>
+              <tr><td><span class="param-name">person_job_title</span></td><td><span class="param-type">object</span></td><td class="param-desc"><code>include</code>, <code>exclude</code> arrays + optional <code>match_only_exact_job_titles</code> (boolean) and <code>boolean_search</code> (string, e.g. <code>"CTO OR (VP AND Engineering)"</code>).</td></tr>
+              <tr><td><span class="param-name">person_department</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">Functional department, e.g. <code>"Engineering"</code>, <code>"Sales"</code>, <code>"Marketing"</code>.</td></tr>
+              <tr><td><span class="param-name">person_seniority</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">Seniority level, e.g. <code>"C-Suite"</code>, <code>"VP"</code>, <code>"Director"</code>, <code>"Manager"</code>, <code>"Senior"</code>, <code>"Entry"</code>.</td></tr>
+              <tr><td><span class="param-name">person_location_search</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">City, region, or country, e.g. <code>"New York, United States"</code>, <code>"London, United Kingdom"</code>.</td></tr>
+              <tr><td><span class="param-name">person_contact_details</span></td><td><span class="param-type">object</span></td><td class="param-desc"><code>email</code> (string[]), <code>mobile</code> (string[]), <code>operator</code> (<code>"OR"</code>|<code>"AND"</code>), <code>hide_people_with_details_already_revealed</code> (boolean).</td></tr>
+              <tr><td><span class="param-name">person_year_of_experience</span></td><td><span class="param-type">range</span></td><td class="param-desc">Total years of professional experience. <code>min</code>/<code>max</code>, range 0–60.</td></tr>
+              <tr><td><span class="param-name">person_time_in_current_role</span></td><td><span class="param-type">range</span></td><td class="param-desc">Months in current job title. <code>min</code>/<code>max</code>, range 0–600.</td></tr>
+              <tr><td><span class="param-name">person_time_in_current_company</span></td><td><span class="param-type">range</span></td><td class="param-desc">Months at current company. <code>min</code>/<code>max</code>, range 0–600.</td></tr>
+              <tr><td><span class="param-name">person_job_change</span></td><td><span class="param-type">object</span></td><td class="param-desc">Recent job changes: <code>timeframe_days</code> (number), <code>only_promotion</code> (boolean), <code>only_new_company</code> (boolean).</td></tr>
+              <tr><td><span class="param-name">max_person_per_company</span></td><td><span class="param-type">integer</span></td><td class="param-desc">Cap results per company to diversify. Range 1–100.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="param-section-label">Company filter keys (also available in search_person)</div>
+          <table class="param-table">
+            <thead><tr><th>Key</th><th>Shape</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">company</span></td><td><span class="param-type">object</span></td><td class="param-desc"><code>names</code> and/or <code>websites</code>, each an include/exclude object.</td></tr>
+              <tr><td><span class="param-name">company_location_search</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">Company HQ location — city, region, or country.</td></tr>
+              <tr><td><span class="param-name">company_headcount_range</span></td><td><span class="param-type">string[]</span></td><td class="param-desc">Size brackets, e.g. <code>"1-10"</code>, <code>"51-100"</code>, <code>"10000+"</code>.</td></tr>
+              <tr><td><span class="param-name">company_headcount_custom</span></td><td><span class="param-type">range</span></td><td class="param-desc">Exact headcount range (<code>min</code>/<code>max</code>). Overrides <code>company_headcount_range</code>.</td></tr>
+              <tr><td><span class="param-name">company_industry</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">Industry string, e.g. <code>"Computer Software"</code>, <code>"Financial Services"</code>.</td></tr>
+              <tr><td><span class="param-name">company_keywords</span></td><td><span class="param-type">object</span></td><td class="param-desc"><code>include</code>/<code>exclude</code> keyword arrays + <code>include_all</code> (AND logic), <code>include_company_description</code>, <code>include_company_description_seo</code> booleans.</td></tr>
+              <tr><td><span class="param-name">company_technology</span></td><td><span class="param-type">include/exclude</span></td><td class="param-desc">Tech stack, e.g. <code>"Salesforce"</code>, <code>"React"</code>, <code>"AWS"</code>.</td></tr>
+              <tr><td><span class="param-name">company_revenue</span></td><td><span class="param-type">object</span></td><td class="param-desc"><code>min</code>/<code>max</code> revenue threshold strings (e.g. <code>"1M"</code>, <code>"100M"</code>) + <code>include_unknown_revenue</code> boolean.</td></tr>
+              <tr><td><span class="param-name">company_type</span></td><td><span class="param-type">string</span></td><td class="param-desc">Legal type, e.g. <code>"Private"</code>, <code>"Public"</code>, <code>"Non Profit"</code>.</td></tr>
+              <tr><td><span class="param-name">company_funding</span></td><td><span class="param-type">object</span></td><td class="param-desc"><code>stage</code> (string[]), <code>funding_date</code> (look-back days), <code>last_funding</code>/<code>total_funding</code> (range).</td></tr>
+              <tr><td><span class="param-name">company_founded</span></td><td><span class="param-type">object</span></td><td class="param-desc">Founding year range: <code>min</code> (≥ 1900), <code>max</code>, <code>include_unknown_founded</code> boolean.</td></tr>
+              <tr><td><span class="param-name">company_headcount_growth</span></td><td><span class="param-type">object</span></td><td class="param-desc">Growth rate: <code>timeframe_month</code>, <code>min</code>/<code>max</code> (%), optional <code>departments</code> array (max 10).</td></tr>
+              <tr><td><span class="param-name">company_job_posting_hiring_for</span></td><td><span class="param-type">string[]</span></td><td class="param-desc">Job titles the company is actively hiring for. Max 500 items.</td></tr>
+              <tr><td><span class="param-name">company_job_posting_quantity</span></td><td><span class="param-type">range</span></td><td class="param-desc">Number of open job postings (<code>min</code>/<code>max</code>).</td></tr>
+              <tr><td><span class="param-name">company_headcount_by_department</span></td><td><span class="param-type">object[]</span></td><td class="param-desc">Array of <code>{ department, min?, max? }</code>. Max 10 entries.</td></tr>
+              <tr><td><span class="param-name">company_naics</span></td><td><span class="param-type">object</span></td><td class="param-desc">NAICS codes: <code>include</code>/<code>exclude</code> integer arrays. Max 100 each.</td></tr>
+              <tr><td><span class="param-name">company_sics</span></td><td><span class="param-type">object</span></td><td class="param-desc">SIC codes: <code>include</code>/<code>exclude</code> integer arrays. Max 100 each.</td></tr>
+              <tr><td><span class="param-name">company_attributes</span></td><td><span class="param-type">object</span></td><td class="param-desc">Boolean flags: <code>b2b</code>, <code>demo</code>, <code>freetrial</code>, <code>downloadable</code>, <code>mobileapps</code>, <code>onlinereviews</code>, <code>pricing</code>. Set <code>true</code> to require, <code>false</code> to exclude, omit to ignore.</td></tr>
+              <tr><td><span class="param-name">company_email_provider</span></td><td><span class="param-type">string[]</span></td><td class="param-desc">Email provider used by the company, e.g. <code>"Google Workspace"</code>, <code>"Microsoft 365"</code>.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="example-grid">
+            <div class="example-block">
+              <div class="example-label">Example request</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"filters"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"person_job_title"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"CTO"</span><span class="tk-p">,</span> <span class="tk-s">"VP of Engineering"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"person_location_search"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"United States"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"company_headcount_range"</span><span class="tk-p">: [</span><span class="tk-s">"51-100"</span><span class="tk-p">,</span> <span class="tk-s">"101-200"</span><span class="tk-p">],</span>
+    <span class="tk-n">"company_industry"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"Computer Software"</span><span class="tk-p">]</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">},</span>
+  <span class="tk-n">"page"</span><span class="tk-p">:</span> <span class="tk-v">1</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+            <div class="example-block">
+              <div class="example-label">Example response</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"success"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+  <span class="tk-n">"data"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"results"</span><span class="tk-p">: [</span>
+      <span class="tk-p">{</span>
+        <span class="tk-n">"person"</span><span class="tk-p">: {</span> <span class="tk-c">/* PersonInfo */</span> <span class="tk-p">},</span>
+        <span class="tk-n">"company"</span><span class="tk-p">: {</span> <span class="tk-c">/* CompanyInfo */</span> <span class="tk-p">}</span>
+      <span class="tk-p">}</span>
+    <span class="tk-p">],</span>
+    <span class="tk-n">"pagination"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"current_page"</span><span class="tk-p">:</span>  <span class="tk-v">1</span><span class="tk-p">,</span>
+      <span class="tk-n">"per_page"</span><span class="tk-p">:</span>     <span class="tk-v">25</span><span class="tk-p">,</span>
+      <span class="tk-n">"total_page"</span><span class="tk-p">:</span>   <span class="tk-v">40</span><span class="tk-p">,</span>
+      <span class="tk-n">"total_count"</span><span class="tk-p">:</span>  <span class="tk-v">987</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /tool-card search_person -->
+
+    </section>
+
+    <!-- =====================================================================
+         TOOL: search_company
+    ====================================================================== -->
+    <section class="section" id="search-company">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-icon" style="background:#fff7ed">🏭</div>
+          <div class="tool-meta">
+            <div class="tool-name">search_company</div>
+            <div class="tool-desc">
+              Search Prospeo's company database using structured filters.
+              Returns up to 25 companies per page, paginated across up to 1 000 pages.
+            </div>
+          </div>
+          <span class="tool-badge badge-credits">1 credit / page</span>
+        </div>
+        <div class="tool-body">
+
+          <div class="param-section-label">Parameters</div>
+          <table class="param-table">
+            <thead><tr><th>Name</th><th>Type</th><th></th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">filters</span></td>
+                <td><span class="param-type">object</span></td>
+                <td><span class="param-req req">required</span></td>
+                <td class="param-desc">Structured company search filters. At least one positive (include) filter is required. Accepts all company filter keys — see <a href="#filters">Filter Reference</a>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">page</span></td>
+                <td><span class="param-type">integer</span></td>
+                <td><span class="param-req opt">optional</span></td>
+                <td class="param-desc">Page number 1–1000. Each page returns up to 25 results. <div class="default">Default: 1</div></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout info" style="margin-top:12px">
+            <span class="callout-icon">💡</span>
+            <p><code>search_company</code> accepts the same company filter keys as <code>search_person</code> (<code>company</code>, <code>company_industry</code>, <code>company_headcount_range</code>, <code>company_technology</code>, etc.). See the full list in the <a href="#filters">Filter Reference</a>.</p>
+          </div>
+
+          <div class="example-grid" style="margin-top:16px">
+            <div class="example-block">
+              <div class="example-label">Example request</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"filters"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"company_industry"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"Computer Software"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"company_headcount_range"</span><span class="tk-p">: [</span><span class="tk-s">"51-100"</span><span class="tk-p">,</span> <span class="tk-s">"101-200"</span><span class="tk-p">],</span>
+    <span class="tk-n">"company_location_search"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"United States"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"company_revenue"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"min"</span><span class="tk-p">:</span> <span class="tk-s">"1M"</span><span class="tk-p">,</span>
+      <span class="tk-n">"max"</span><span class="tk-p">:</span> <span class="tk-s">"100M"</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+            <div class="example-block">
+              <div class="example-label">Example response</div>
+              <div class="code-wrap standalone" style="margin-bottom:0">
+                <div class="code-header">
+                  <span class="code-lang">json</span>
+                  <button class="code-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>{
+  <span class="tk-n">"success"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+  <span class="tk-n">"data"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"results"</span><span class="tk-p">: [</span>
+      <span class="tk-p">{</span>
+        <span class="tk-n">"company"</span><span class="tk-p">: {</span> <span class="tk-c">/* CompanyInfo */</span> <span class="tk-p">}</span>
+      <span class="tk-p">}</span>
+    <span class="tk-p">],</span>
+    <span class="tk-n">"pagination"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"current_page"</span><span class="tk-p">:</span>  <span class="tk-v">1</span><span class="tk-p">,</span>
+      <span class="tk-n">"per_page"</span><span class="tk-p">:</span>     <span class="tk-v">25</span><span class="tk-p">,</span>
+      <span class="tk-n">"total_page"</span><span class="tk-p">:</span>   <span class="tk-v">120</span><span class="tk-p">,</span>
+      <span class="tk-n">"total_count"</span><span class="tk-p">:</span>  <span class="tk-v">2981</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /tool-card search_company -->
+
+    </section>
+
+    <!-- =====================================================================
+         TOOL: get_account_info
+    ====================================================================== -->
+    <section class="section" id="get-account-info">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <div class="tool-icon" style="background:#f8fafc">📊</div>
+          <div class="tool-meta">
+            <div class="tool-name">get_account_info</div>
+            <div class="tool-desc">
+              Check your Prospeo account status — credits remaining, plan name, renewal date, and team size.
+              Useful to verify your API key works or check remaining quota before a large search.
+            </div>
+          </div>
+          <span class="tool-badge badge-free">Free</span>
+        </div>
+        <div class="tool-body">
+
+          <p style="font-size:13.5px">This tool takes no parameters.</p>
+
+          <div class="param-section-label">Response fields</div>
+          <table class="param-table">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">email</span></td><td><span class="param-type">string</span></td><td class="param-desc">Account email address</td></tr>
+              <tr><td><span class="param-name">plan</span></td><td><span class="param-type">string</span></td><td class="param-desc">Current plan name, e.g. <code>"Growth"</code></td></tr>
+              <tr><td><span class="param-name">credits_used</span></td><td><span class="param-type">number</span></td><td class="param-desc">Credits consumed in current billing period</td></tr>
+              <tr><td><span class="param-name">credits_limit</span></td><td><span class="param-type">number</span></td><td class="param-desc">Total credits in your plan</td></tr>
+              <tr><td><span class="param-name">credits_remaining</span></td><td><span class="param-type">number</span></td><td class="param-desc">Credits still available</td></tr>
+              <tr><td><span class="param-name">renewal_date</span></td><td><span class="param-type">string</span></td><td class="param-desc">Next billing renewal date (ISO 8601)</td></tr>
+              <tr><td><span class="param-name">renewal_days</span></td><td><span class="param-type">number</span></td><td class="param-desc">Days until renewal</td></tr>
+              <tr><td><span class="param-name">team_members</span></td><td><span class="param-type">number</span></td><td class="param-desc">Number of active team members on the account</td></tr>
+            </tbody>
+          </table>
+
+          <div class="param-section-label" style="margin-top:20px">Example response</div>
+          <div class="code-wrap standalone">
+            <div class="code-header">
+              <span class="code-lang">json</span>
+              <button class="code-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre>{
+  <span class="tk-n">"success"</span><span class="tk-p">:</span> <span class="tk-k">true</span><span class="tk-p">,</span>
+  <span class="tk-n">"data"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"email"</span><span class="tk-p">:</span>             <span class="tk-s">"you@company.com"</span><span class="tk-p">,</span>
+    <span class="tk-n">"plan"</span><span class="tk-p">:</span>              <span class="tk-s">"Growth"</span><span class="tk-p">,</span>
+    <span class="tk-n">"credits_used"</span><span class="tk-p">:</span>     <span class="tk-v">312</span><span class="tk-p">,</span>
+    <span class="tk-n">"credits_limit"</span><span class="tk-p">:</span>    <span class="tk-v">1000</span><span class="tk-p">,</span>
+    <span class="tk-n">"credits_remaining"</span><span class="tk-p">:</span> <span class="tk-v">688</span><span class="tk-p">,</span>
+    <span class="tk-n">"renewal_date"</span><span class="tk-p">:</span>     <span class="tk-s">"2026-04-23"</span><span class="tk-p">,</span>
+    <span class="tk-n">"renewal_days"</span><span class="tk-p">:</span>     <span class="tk-v">31</span><span class="tk-p">,</span>
+    <span class="tk-n">"team_members"</span><span class="tk-p">:</span>     <span class="tk-v">3</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+          </div>
+
+        </div>
+      </div><!-- /tool-card get_account_info -->
+
+    </section>
+
+    <!-- =====================================================================
+         FILTER FORMAT
+    ====================================================================== -->
+    <section class="section" id="filters">
+      <h2>Filter Reference</h2>
+      <p>Both <code>search_person</code> and <code>search_company</code> accept <code>filters</code> as a plain <strong>JSON object</strong>. Filter keys use one of the shapes below depending on the field.</p>
+
+      <div class="param-section-label" style="margin-top:20px">Filter shapes</div>
+      <table class="param-table" style="margin-bottom:20px">
+        <thead><tr><th>Shape</th><th>Structure</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="param-type">include/exclude</span></td>
+            <td><code>{ include?: string[], exclude?: string[] }</code></td>
+            <td class="param-desc">Results must match at least one <code>include</code> value; any <code>exclude</code> match removes the result.</td>
+          </tr>
+          <tr>
+            <td><span class="param-type">string[]</span></td>
+            <td><code>string[]</code></td>
+            <td class="param-desc">A plain array of accepted string values (e.g. headcount brackets).</td>
+          </tr>
+          <tr>
+            <td><span class="param-type">range</span></td>
+            <td><code>{ min?: number, max?: number }</code></td>
+            <td class="param-desc">Numeric lower/upper bound. Both fields are optional.</td>
+          </tr>
+          <tr>
+            <td><span class="param-type">string</span></td>
+            <td><code>string</code></td>
+            <td class="param-desc">A single string value (e.g. <code>company_type</code>, <code>person_name_or_job_title</code>).</td>
+          </tr>
+          <tr>
+            <td><span class="param-type">object</span></td>
+            <td>varies per key</td>
+            <td class="param-desc">Richer structure — see the per-key descriptions in the tool sections above.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="code-wrap standalone">
+        <div class="code-header">
+          <span class="code-lang">json — composite example</span>
+          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>{
+  <span class="tk-n">"filters"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"person_job_title"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"CTO"</span><span class="tk-p">,</span> <span class="tk-s">"VP of Engineering"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"person_seniority"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"C-Suite"</span><span class="tk-p">,</span> <span class="tk-s">"VP"</span><span class="tk-p">],</span>
+      <span class="tk-n">"exclude"</span><span class="tk-p">: [</span><span class="tk-s">"Intern"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"person_location_search"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"United States"</span><span class="tk-p">],</span>
+      <span class="tk-n">"exclude"</span><span class="tk-p">: [</span><span class="tk-s">"Texas, United States"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"company_headcount_range"</span><span class="tk-p">: [</span><span class="tk-s">"51-100"</span><span class="tk-p">,</span> <span class="tk-s">"101-200"</span><span class="tk-p">,</span> <span class="tk-s">"201-500"</span><span class="tk-p">],</span>
+    <span class="tk-n">"company_industry"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"Computer Software"</span><span class="tk-p">,</span> <span class="tk-s">"Information Technology and Services"</span><span class="tk-p">]</span>
+    <span class="tk-p">},</span>
+    <span class="tk-n">"company_revenue"</span><span class="tk-p">: {</span> <span class="tk-n">"min"</span><span class="tk-p">:</span> <span class="tk-s">"10M"</span><span class="tk-p">,</span> <span class="tk-n">"max"</span><span class="tk-p">:</span> <span class="tk-s">"500M"</span> <span class="tk-p">},</span>
+    <span class="tk-n">"company_technology"</span><span class="tk-p">: {</span>
+      <span class="tk-n">"include"</span><span class="tk-p">: [</span><span class="tk-s">"Salesforce"</span><span class="tk-p">]</span>
+    <span class="tk-p">}</span>
+  <span class="tk-p">},</span>
+  <span class="tk-n">"page"</span><span class="tk-p">:</span> <span class="tk-v">1</span>
+<span class="tk-p">}</span></pre>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <p>An empty <code>filters</code> object (<code>{}</code>) will be rejected with <code>INVALID_REQUEST</code>. At least one filter key must be provided.</p>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         ERROR CODES
+    ====================================================================== -->
+    <section class="section" id="errors">
+      <h2>Error Codes</h2>
+      <p>When a tool call fails, the server returns a structured error object:</p>
+
+      <div class="code-wrap standalone">
+        <div class="code-header">
+          <span class="code-lang">json — error response shape</span>
+          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>{
+  <span class="tk-n">"success"</span><span class="tk-p">:</span> <span class="tk-k">false</span><span class="tk-p">,</span>
+  <span class="tk-n">"error"</span><span class="tk-p">: {</span>
+    <span class="tk-n">"message"</span><span class="tk-p">:</span>  <span class="tk-s">"Human-readable explanation"</span><span class="tk-p">,</span>
+    <span class="tk-n">"code"</span><span class="tk-p">:</span>     <span class="tk-s">"INSUFFICIENT_CREDITS"</span><span class="tk-p">,</span>
+    <span class="tk-n">"category"</span><span class="tk-p">:</span> <span class="tk-s">"api_client_error"</span><span class="tk-p">,</span>
+    <span class="tk-n">"severity"</span><span class="tk-p">:</span> <span class="tk-s">"high"</span>
+  <span class="tk-p">}</span>
+<span class="tk-p">}</span></pre>
+      </div>
+
+      <table class="error-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>Meaning & fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="error-code">INSUFFICIENT_CREDITS</span></td>
+            <td>api_client_error</td>
+            <td><span class="severity sev-high">high</span></td>
+            <td class="param-desc">Account has no credits left. Upgrade your plan or wait for the next billing cycle.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">INVALID_DATAPOINTS</span></td>
+            <td>validation</td>
+            <td><span class="severity sev-low">low</span></td>
+            <td class="param-desc">No identifying data provided for enrichment. Add at least one of linkedin_url, email, or name + company.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">INVALID_REQUEST</span></td>
+            <td>validation</td>
+            <td><span class="severity sev-low">low</span></td>
+            <td class="param-desc">Malformed request body (e.g. empty filters, out-of-range page number).</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">INVALID_FILTERS</span></td>
+            <td>validation</td>
+            <td><span class="severity sev-low">low</span></td>
+            <td class="param-desc">One or more filter keys or values are not recognized. Check the <a href="#filters">Filter Reference</a> reference.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">INVALID_API_KEY</span></td>
+            <td>configuration</td>
+            <td><span class="severity sev-critical">critical</span></td>
+            <td class="param-desc">API key is invalid. Verify your <code>PROSPEO_API_KEY</code> environment variable.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">RATE_LIMIT_EXCEEDED</span></td>
+            <td>rate_limit</td>
+            <td><span class="severity sev-medium">medium</span></td>
+            <td class="param-desc">Too many requests in a short period. Wait before retrying.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">ACCOUNT_RESTRICTED</span></td>
+            <td>api_client_error</td>
+            <td><span class="severity sev-critical">critical</span></td>
+            <td class="param-desc">Account is suspended or restricted. Contact <a href="mailto:support@prospeo.io">support@prospeo.io</a>.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">INTERNAL_ERROR</span></td>
+            <td>api_server_error</td>
+            <td><span class="severity sev-high">high</span></td>
+            <td class="param-desc">Prospeo server error. Retry once; if it persists contact support.</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">NETWORK_ERROR</span></td>
+            <td>api_server_error</td>
+            <td><span class="severity sev-high">high</span></td>
+            <td class="param-desc">Could not reach the Prospeo API (connection refused, DNS failure, etc.).</td>
+          </tr>
+          <tr>
+            <td><span class="error-code">TIMEOUT</span></td>
+            <td>api_server_error</td>
+            <td><span class="severity sev-medium">medium</span></td>
+            <td class="param-desc">Request exceeded <code>PROSPEO_TIMEOUT</code> (default 30 s). Retry or increase the timeout.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- =====================================================================
+         CREDIT USAGE
+    ====================================================================== -->
+    <section class="section" id="credits">
+      <h2>Credit Usage</h2>
+      <p>Credits are deducted per successful API call. Failed lookups (person not found, company not found) and <code>free_enrichment: true</code> responses do not consume credits.</p>
+
+      <table class="param-table" style="margin-top:8px">
+        <thead>
+          <tr><th>Action</th><th>Credits</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="param-desc"><code>enrich_person</code> — email only</td>
+            <td class="param-desc"><strong>1</strong></td>
+            <td class="param-desc">Default behaviour</td>
+          </tr>
+          <tr>
+            <td class="param-desc"><code>enrich_person</code> — mobile (with or without email)</td>
+            <td class="param-desc"><strong>10</strong></td>
+            <td class="param-desc">When <code>enrich_mobile: true</code>. Email is included at no extra cost.</td>
+          </tr>
+          <tr>
+            <td class="param-desc"><code>enrich_company</code></td>
+            <td class="param-desc"><strong>1</strong></td>
+            <td class="param-desc">Per successful enrichment</td>
+          </tr>
+          <tr>
+            <td class="param-desc"><code>search_person</code></td>
+            <td class="param-desc"><strong>1</strong></td>
+            <td class="param-desc">Per page that returns results</td>
+          </tr>
+          <tr>
+            <td class="param-desc"><code>search_company</code></td>
+            <td class="param-desc"><strong>1</strong></td>
+            <td class="param-desc">Per page that returns results</td>
+          </tr>
+          <tr>
+            <td class="param-desc"><code>get_account_info</code></td>
+            <td class="param-desc"><strong>0</strong></td>
+            <td class="param-desc">Always free</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip" style="margin-top:20px">
+        <span class="callout-icon">💡</span>
+        <p>Use <code>get_account_info</code> before a large search batch to confirm you have enough credits. A search across 10 pages costs 10 credits.</p>
+      </div>
+    </section>
+
+    <footer class="doc-footer">
+      <p>
+        © 2025 Prospeo &nbsp;·&nbsp;
+        <a href="https://app.prospeo.io/api-management" target="_blank">API Keys</a> &nbsp;·&nbsp;
+        <a href="mailto:support@prospeo.io">support@prospeo.io</a> &nbsp;·&nbsp;
+        <a href="https://prospeo.io" target="_blank">prospeo.io</a>
+      </p>
+    </footer>
+
+  </main>
+</div>
+
+<!-- =========================================================================
+     JS — scroll-spy + copy buttons + tab switching
+========================================================================== -->
+<script>
+  // -------------------------------------------------------------------------
+  // Scroll-spy: highlight the active sidebar link
+  // -------------------------------------------------------------------------
+  const links = document.querySelectorAll('.sidebar-link[href^="#"]');
+  const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+
+  function onScroll() {
+    const top = window.scrollY + 90;
+    let active = sections[0];
+    for (const s of sections) {
+      if (s.offsetTop <= top) active = s;
+    }
+    links.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + active.id);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // -------------------------------------------------------------------------
+  // Copy button
+  // -------------------------------------------------------------------------
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => (btn.textContent = orig), 1800);
+    });
+  }
+</script>
+
+</body>
+</html>
