@@ -2,14 +2,17 @@
   "name": "@prospeo/mcp-server",
   "version": "1.0.0",
   "description": "Official Prospeo MCP server — Access to lead search and enrichment",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "prospeo-mcp-server": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http-server.ts",
     "start": "node dist/index.js",
+    "start:http": "node dist/http-server.js",
     "prepublishOnly": "npm run build",
     "test": "vitest run"
   },
@@ -31,7 +34,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "ts-node": "^10.9.0",
+    "tsx": "^4.7.0",
     "typescript": "^5.0.0",
     "vitest": "^2.1.9"
   },

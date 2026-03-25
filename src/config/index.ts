@@ -3,8 +3,8 @@
  * Fails fast with a clear message if PROSPEO_API_KEY is missing.
  */
 
-export interface ProspeoConfig {
-  apiKey: string;
+/** Server-level config (no per-user API key) — shared by all sessions in HTTP mode. */
+export interface ServerConfig {
   /** Base URL for the Prospeo public API (no trailing slash) */
   apiBaseUrl: string;
   /** Request timeout in milliseconds */
@@ -13,8 +13,24 @@ export interface ProspeoConfig {
   logLevel: string;
 }
 
+/** Full config including user API key — used by the API client. */
+export interface ProspeoConfig extends ServerConfig {
+  apiKey: string;
+}
+
 /**
- * Load and validate config from environment variables.
+ * Load server-level config from environment variables (everything except API key).
+ */
+export function loadServerConfig(): ServerConfig {
+  return {
+    apiBaseUrl: (process.env.PROSPEO_API_BASE_URL || "https://api.prospeo.io").replace(/\/$/, ""),
+    timeoutMs: parseInt(process.env.PROSPEO_TIMEOUT || "30000", 10),
+    logLevel: (process.env.LOG_LEVEL || "INFO").toUpperCase(),
+  };
+}
+
+/**
+ * Load and validate full config from environment variables (stdio mode).
  * Throws if required variables are missing.
  */
 export function loadConfig(): ProspeoConfig {
@@ -30,8 +46,6 @@ export function loadConfig(): ProspeoConfig {
 
   return {
     apiKey: apiKey.trim(),
-    apiBaseUrl: (process.env.PROSPEO_API_BASE_URL || "https://api.prospeo.io").replace(/\/$/, ""),
-    timeoutMs: parseInt(process.env.PROSPEO_TIMEOUT || "30000", 10),
-    logLevel: (process.env.LOG_LEVEL || "INFO").toUpperCase(),
+    ...loadServerConfig(),
   };
 }
