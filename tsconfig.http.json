@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist-http"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "dist-http", "src/**/__tests__"]
+}

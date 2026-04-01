@@ -48,8 +48,30 @@ export async function searchCompany(
     return { type: "text", text: formatErrorText(error) };
   }
 
+  // Strip verbose fields to keep response small.
+  // Full details are available via enrich_company with the returned company_id.
+  const results = (response.results ?? []).map((r) => ({
+    company: r.company
+      ? {
+          company_id: r.company.company_id,
+          name: r.company.name,
+          website: r.company.website,
+          domain: r.company.domain,
+          industry: r.company.industry,
+          employee_count: r.company.employee_count,
+          employee_range: r.company.employee_range,
+          revenue_range_printed: r.company.revenue_range_printed,
+          founded: r.company.founded,
+          location: r.company.location,
+          linkedin_url: r.company.linkedin_url,
+          funding: r.company.funding,
+          keywords: r.company.keywords,
+        }
+      : null,
+  }));
+
   logger.info("search_company: success", {
-    result_count: response.results?.length ?? 0,
+    result_count: results.length,
     total_count: response.pagination?.total_count,
     page: response.pagination?.current_page,
   });
@@ -57,7 +79,7 @@ export async function searchCompany(
   const result: ToolResult = {
     success: true,
     data: {
-      results: response.results ?? [],
+      results,
       pagination: response.pagination,
     },
   };

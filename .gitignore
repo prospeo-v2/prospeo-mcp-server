@@ -1,5 +1,14 @@
 node_modules/
 dist/
+dist-http/
 *.js.map
 .env
 .env.local
+.DS_Store
+.idea/
+.vscode/
+*.swp
+coverage/
+*.code-workspace
+diffing.sh
+analytics.diff

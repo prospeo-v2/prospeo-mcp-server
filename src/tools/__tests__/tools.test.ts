@@ -45,7 +45,7 @@ describe("searchCompany", () => {
   it("returns paginated company results on success", async () => {
     const client = mockClient({
       error: false,
-      results: [{ company_id: "c1", name: "Acme" }],
+      results: [{ company: { company_id: "c1", name: "Acme", website: "https://acme.com" } }],
       pagination: { total_count: 1, current_page: 1 },
     });
 
@@ -53,7 +53,7 @@ describe("searchCompany", () => {
     const parsed = JSON.parse(result.text);
 
     expect(parsed.success).toBe(true);
-    expect(parsed.data.results[0].name).toBe("Acme");
+    expect(parsed.data.results[0].company.name).toBe("Acme");
   });
 });
 

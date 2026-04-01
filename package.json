@@ -1,7 +1,7 @@
 {
-  "name": "@prospeo/mcp-server",
+  "name": "@prospeo/prospeo-mcp-server",
   "version": "1.0.0",
-  "description": "Official Prospeo MCP server — Access to lead search and enrichment",
+  "description": "Prospeo MCP server - Find people and company data and enrich them with verified emails and mobile numbers.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -9,10 +9,11 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:http": "tsc -p tsconfig.http.json",
     "dev": "tsx src/index.ts",
     "dev:http": "tsx src/http-server.ts",
     "start": "node dist/index.js",
-    "start:http": "node dist/http-server.js",
+    "start:http": "node dist-http/http-server.js",
     "prepublishOnly": "npm run build",
     "test": "vitest run"
   },
@@ -20,15 +21,24 @@
     "mcp",
     "model-context-protocol",
     "prospeo",
+    "sales",
+    "marketing",
     "lead-enrichment",
+    "leads",
     "b2b",
-    "sales-intelligence",
-    "email-finder"
+    "data-enrichment",
+    "company-data",
+    "email-finder",
+    "contact-data"
   ],
-  "author": "Prospeo <contact@prospeo.io>",
+  "author": {
+    "name": "Apoorva Pandey",
+    "email": "apoorva@prospeo.io"
+  },
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "jose": "^6.2.2",
     "zod": "^3.22.0",
     "zod-to-json-schema": "^3.22.0"
   },
@@ -42,8 +52,7 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "repository": {
     "type": "git",

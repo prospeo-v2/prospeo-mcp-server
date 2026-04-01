@@ -39,8 +39,8 @@ export function loadConfig(): ProspeoConfig {
   if (!apiKey || apiKey.trim() === "") {
     throw new Error(
       "[Prospeo MCP] Missing required environment variable: PROSPEO_API_KEY\n" +
-        "Set it with: claude mcp add prospeo --env PROSPEO_API_KEY=<your_key> -- npx -y @prospeo/mcp-server\n" +
-        "Get your API key at: https://app.prospeo.io/api-management"
+        "Set it via your MCP client's config, e.g.: PROSPEO_API_KEY=<your_key> npx -y @prospeo/prospeo-mcp-server\n" +
+        "Get your API key at: https://app.prospeo.io/api"
     );
   }
 

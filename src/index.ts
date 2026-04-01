@@ -7,7 +7,7 @@
  * and company intelligence natively.
  *
  * Usage:
- *   claude mcp add prospeo --env PROSPEO_API_KEY=<key> -- npx -y @prospeo/mcp-server
+ *   claude mcp add prospeo --env PROSPEO_API_KEY=<key> -- npx -y @prospeo/prospeo-mcp-server
  *
  * Tools:
  *   - enrich_person    Find email + mobile for a person

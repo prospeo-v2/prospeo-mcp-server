@@ -124,7 +124,13 @@ export interface CompanyInfo {
   crunchbase_url?: string;
   instagram_url?: string;
   youtube_url?: string;
-  phone_hq?: { number?: string; country?: string };
+  phone_hq?: {
+    phone_hq?: string;
+    phone_hq_national?: string;
+    phone_hq_international?: string;
+    phone_hq_country?: string;
+    phone_hq_country_code?: string;
+  };
   linkedin_id?: string;
   founded?: number;
   revenue_range?: RevenueRange;

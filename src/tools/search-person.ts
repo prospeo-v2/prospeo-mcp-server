@@ -48,8 +48,30 @@ export async function searchPerson(
     return { type: "text", text: formatErrorText(error) };
   }
 
+  // Strip verbose fields to keep response small.
+  // Full details are available via enrich_person / enrich_company with the returned IDs.
+  const results = (response.results ?? []).map((r) => {
+    const { job_history, skills, ...person } = r.person ?? {} as Record<string, unknown>;
+    const company = r.company
+      ? {
+          company_id: r.company.company_id,
+          name: r.company.name,
+          website: r.company.website,
+          domain: r.company.domain,
+          industry: r.company.industry,
+          employee_count: r.company.employee_count,
+          employee_range: r.company.employee_range,
+          location: r.company.location,
+          revenue_range_printed: r.company.revenue_range_printed,
+          founded: r.company.founded,
+          linkedin_url: r.company.linkedin_url,
+        }
+      : null;
+    return { person, company };
+  });
+
   logger.info("search_person: success", {
-    result_count: response.results?.length ?? 0,
+    result_count: results.length,
     total_count: response.pagination?.total_count,
     page: response.pagination?.current_page,
   });
@@ -57,7 +79,7 @@ export async function searchPerson(
   const result: ToolResult = {
     success: true,
     data: {
-      results: response.results ?? [],
+      results,
       pagination: response.pagination,
     },
   };

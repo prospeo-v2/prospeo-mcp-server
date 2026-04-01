@@ -44,6 +44,8 @@ const TOOLS: Tool[] = [
       "Provide at least one identifying field: linkedin_url, email, or full_name/first_name+last_name combined with company_name or company_website. " +
       "Returns person profile with email, mobile, job history, and current company data. ",
     inputSchema: zodToJsonSchema(EnrichPersonSchema) as Tool["inputSchema"],
+
+    annotations: { title: "Enrich Person", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
   },
   {
     name: "enrich_company",
@@ -51,26 +53,33 @@ const TOOLS: Tool[] = [
       "Get a full company profile including headcount, industry, revenue range, tech stack, funding, and social links. " +
       "Provide at least one of: company_website (recommended — most accurate), company_name, or company_linkedin_url. ",
     inputSchema: zodToJsonSchema(EnrichCompanySchema) as Tool["inputSchema"],
+    annotations: { title: "Enrich Company", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
   },
   {
     name: "search_person",
     description:
       "Search Prospeo's professional database using typed filters. " +
-      "Returns up to 25 results per page (max 1000 pages). Costs 1 credit per search that returns results. " +
+      "Returns up to 25 summary results per page (max 1000 pages). Costs 1 credit per page of results. " +
+      "Results include key person fields (name, title, email, mobile, location) and company summary (name, industry, size). " +
+      "Use enrich_person with person_id to get full details including job history. " +
       "Use person filters (person_job_title, person_seniority, person_location_search, etc.) combined with " +
       "company filters (company_industry, company_headcount_range, company_technology, etc.) to narrow results. " +
       "At least one positive (include) filter is required.",
     inputSchema: zodToJsonSchema(SearchPersonSchema) as Tool["inputSchema"],
+    annotations: { title: "Search People", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
   },
   {
     name: "search_company",
     description:
       "Search Prospeo's company database using typed filters. " +
-      "Returns up to 25 results per page (max 1000 pages). Costs 1 credit per search that returns results. " +
+      "Returns up to 25 summary results per page (max 1000 pages). Costs 1 credit per page of results. " +
+      "Results include key company fields (name, website, industry, size, revenue, location, funding, keywords). " +
+      "Use enrich_company with company_id to get full details including tech stack, descriptions, and job postings. " +
       "Use filters like company_industry, company_headcount_range, company_location_search, " +
       "company_technology, company_revenue, company_funding, and more. " +
       "At least one positive (include) filter is required.",
     inputSchema: zodToJsonSchema(SearchCompanySchema) as Tool["inputSchema"],
+    annotations: { title: "Search Companies", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
   },
   {
     name: "get_account_info",
@@ -82,6 +91,7 @@ const TOOLS: Tool[] = [
       properties: {},
       required: [],
     },
+    annotations: { title: "Account Info", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   },
 ];
 
