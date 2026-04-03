@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-http
+.git
+.gitignore
+*.md
+LICENSE.md
+src/**/__tests__
