@@ -40,9 +40,10 @@ const TOOLS: Tool[] = [
   {
     name: "enrich_person",
     description:
-      "Find the professional email address and/or mobile phone number for a person. " +
+      "Get detailed information about a single person including professional email, mobile number, job history, and company data. " +
+      "Use this when the user requests details for a specific person. " +
       "Provide at least one identifying field: linkedin_url, email, or full_name/first_name+last_name combined with company_name or company_website. " +
-      "Returns person profile with email, mobile, job history, and current company data. ",
+      "Returns complete person profile with email, mobile, job history, and current company information. ",
     inputSchema: zodToJsonSchema(EnrichPersonSchema) as Tool["inputSchema"],
 
     annotations: { title: "Enrich Person", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
@@ -50,7 +51,8 @@ const TOOLS: Tool[] = [
   {
     name: "enrich_company",
     description:
-      "Get a full company profile including headcount, industry, revenue range, tech stack, funding, and social links. " +
+      "Get detailed information about a single company including headcount, industry, revenue range, tech stack, funding, and social links. " +
+      "Use this when the user requests details for a specific company. " +
       "Provide at least one of: company_website (recommended — most accurate), company_name, or company_linkedin_url. ",
     inputSchema: zodToJsonSchema(EnrichCompanySchema) as Tool["inputSchema"],
     annotations: { title: "Enrich Company", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
