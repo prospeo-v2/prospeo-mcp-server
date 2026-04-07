@@ -76,8 +76,6 @@ Add to your MCP settings (refer to your client's documentation):
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `PROSPEO_API_KEY` | Yes (stdio mode) | — | Your Prospeo API key. Get one at [app.prospeo.io/api](https://app.prospeo.io/api) |
-| `PROSPEO_API_BASE_URL` | No | `https://api.prospeo.io` | Prospeo API base URL |
-| `PROSPEO_TIMEOUT` | No | `30000` | Request timeout in milliseconds |
 | `LOG_LEVEL` | No | `INFO` | Logging level: `DEBUG`, `INFO`, `WARN`, `ERROR` |
 
 ## Tools
@@ -168,12 +166,14 @@ Pass your API key via the `PROSPEO_API_KEY` environment variable. The server val
 
 ## Privacy Policy
 
-See our privacy policy: [https://prospeo.io/privacy](https://prospeo.io/privacy)
+See our privacy policy: [https://prospeo.io/privacy-policy](https://prospeo.io/privacy-policy)
 
 ## Support
 
-- Email: [contact@prospeo.io](mailto:contact@prospeo.io)
-- Documentation: [https://prospeo.io/api-docs](https://prospeo.io/api-docs)
+- Email: [support@prospeo.io](mailto:support@prospeo.io)
+- Helpdesk: [https://help.prospeo.io](https://help.prospeo.io)
+- MCP Documentation: [https://prospeo.io/mcp-docs](https://prospeo.io/mcp-docs)
+- REST API Documentation: [https://prospeo.io/api-docs](https://prospeo.io/api-docs)
 - Issues: [https://github.com/prospeo-v2/prospeo-mcp-server/issues](https://github.com/prospeo-v2/prospeo-mcp-server/issues)
 
 ## License
