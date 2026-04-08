@@ -108,6 +108,8 @@ if (!RESOLVE_API_KEY_URL) {
   logger.warn("RESOLVE_API_KEY_URL not set — Bearer JWT auth will not work");
 }
 
+const MCP_SERVICE_SECRET = process.env.MCP_SERVICE_SECRET || "";
+
 async function resolveApiKeyFromBearer(token: string): Promise<string | null> {
   try {
     await validateBearerToken(token); // verify signature + expiry locally first
@@ -117,12 +119,17 @@ async function resolveApiKeyFromBearer(token: string): Promise<string | null> {
   }
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+    if (MCP_SERVICE_SECRET) {
+      headers["X-MCP-Service-Key"] = MCP_SERVICE_SECRET;
+    }
+
     const response = await fetch(RESOLVE_API_KEY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
