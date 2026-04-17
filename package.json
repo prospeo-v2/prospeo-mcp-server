@@ -1,7 +1,7 @@
 {
   "name": "@prospeo/prospeo-mcp-server",
-  "version": "1.0.1",
-  "mcpName": "io.github.prospeo-v2/prospeo-mcp-server",
+  "version": "1.0.2",
+  "mcpName": "io.prospeo/prospeo-mcp-server",
   "description": "Prospeo MCP server - Find people and company data and enrich them with verified emails and mobile numbers.",
   "type": "module",
   "main": "dist/index.js",
