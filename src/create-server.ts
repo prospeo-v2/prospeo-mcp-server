@@ -40,10 +40,12 @@ const TOOLS: Tool[] = [
   {
     name: "enrich_person",
     description:
-      "Get detailed information about a single person including professional email, mobile number, job history, and company data. " +
-      "Use this when the user requests details for a specific person. " +
-      "Provide at least one identifying field: linkedin_url, email, or full_name/first_name+last_name combined with company_name or company_website. " +
-      "Returns complete person profile with email, mobile, job history, and current company information. ",
+      "Enrich a person — return their full profile with verified email and/or mobile, job history, and current company. " +
+      "Provide at least one identifier: linkedin_url, email, person_id (from a prior search result), or full_name/first_name+last_name plus company_name/company_website. " +
+      "Credits: 1 for email, 10 for email + mobile (set enrich_mobile=true; email is included free when mobile is requested). " +
+      "Credits are only deducted when the requested contact data is actually returned. " +
+      "No charge if no person is matched, and no charge if only_verified_email/only_verified_mobile is set but no verified contact exists. " +
+      "Check free_enrichment in the response to confirm.",
     inputSchema: zodToJsonSchema(EnrichPersonSchema) as Tool["inputSchema"],
 
     annotations: { title: "Enrich Person", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
@@ -51,21 +53,21 @@ const TOOLS: Tool[] = [
   {
     name: "enrich_company",
     description:
-      "Get detailed information about a single company including headcount, industry, revenue range, tech stack, funding, and social links. " +
-      "Use this when the user requests details for a specific company. " +
-      "Provide at least one of: company_website (recommended — most accurate), company_name, or company_linkedin_url. ",
+      "Enrich a company — return its full profile (headcount, industry, revenue, tech stack, funding, social links, HQ phone). " +
+      "Provide at least one identifier: company_website (most accurate), company_linkedin_url, company_name, or company_id (from a prior search result). " +
+      "Credits: 1 per successful match. No charge if no match is found. " +
+      "Check free_enrichment in the response to confirm whether credits were deducted.",
     inputSchema: zodToJsonSchema(EnrichCompanySchema) as Tool["inputSchema"],
     annotations: { title: "Enrich Company", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
   },
   {
     name: "search_person",
     description:
-      "Search Prospeo's professional database using typed filters. " +
-      "Returns up to 25 summary results per page (max 1000 pages). Costs 1 credit per page of results. " +
-      "Results include key person fields (name, title, email, mobile, location) and company summary (name, industry, size). " +
-      "Use enrich_person with person_id to get full details including job history. " +
-      "Use person filters (person_job_title, person_seniority, person_location_search, etc.) combined with " +
-      "company filters (company_industry, company_headcount_range, company_technology, etc.) to narrow results. " +
+      "Search Prospeo's professional database using typed filters. Returns up to 25 results per page (max 1000 pages). Costs 1 credit per page that returns results. " +
+      "Each result includes person fields (name, title, location, linkedin_url) and a company summary. " +
+      "email and mobile are returned as obfuscated previews (revealed=false, address/number masked) with the status field populated (VERIFIED / UNVERIFIED / null) — inspect status to assess coverage before enriching. " +
+      "Pass person_id to enrich_person to reveal the actual values (enrich_person credits apply there, not here). " +
+      "Combine person filters (person_job_title, person_seniority, person_location_search) with company filters (company_industry, company_headcount_range, company_technology) to narrow results. " +
       "At least one positive (include) filter is required.",
     inputSchema: zodToJsonSchema(SearchPersonSchema) as Tool["inputSchema"],
     annotations: { title: "Search People", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
@@ -73,12 +75,10 @@ const TOOLS: Tool[] = [
   {
     name: "search_company",
     description:
-      "Search Prospeo's company database using typed filters. " +
-      "Returns up to 25 summary results per page (max 1000 pages). Costs 1 credit per page of results. " +
-      "Results include key company fields (name, website, industry, size, revenue, location, funding, keywords). " +
-      "Use enrich_company with company_id to get full details including tech stack, descriptions, and job postings. " +
-      "Use filters like company_industry, company_headcount_range, company_location_search, " +
-      "company_technology, company_revenue, company_funding, and more. " +
+      "Search Prospeo's company database using typed filters. Returns up to 25 results per page (max 1000 pages). Costs 1 credit per page that returns results. " +
+      "Each result is a summary (name, website, industry, size, revenue, location, funding, keywords). " +
+      "Pass company_id to enrich_company for the full profile (tech stack, description, job postings, attributes — not included in search). " +
+      "Use filters like company_industry, company_headcount_range, company_location_search, company_technology, company_revenue, company_funding. " +
       "At least one positive (include) filter is required.",
     inputSchema: zodToJsonSchema(SearchCompanySchema) as Tool["inputSchema"],
     annotations: { title: "Search Companies", readOnlyHint: true, destructiveHint: false, openWorldHint: true },

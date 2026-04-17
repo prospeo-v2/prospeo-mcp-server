@@ -192,13 +192,11 @@ export interface SearchCompanyAPIResponse extends ProspeoAPIResponse {
 
 export interface AccountInfoAPIResponse extends ProspeoAPIResponse {
   response: {
-    email?: string;
-    plan?: string;
-    credits_used?: number;
-    credits_limit?: number;
-    credits_remaining?: number;
-    renewal_date?: string;
-    renewal_days?: number;
-    team_members?: number;
+    current_plan: string;
+    current_team_members: number;
+    remaining_credits: number;
+    used_credits: number;
+    next_quota_renewal_days: number;
+    next_quota_renewal_date: string;
   };
 }

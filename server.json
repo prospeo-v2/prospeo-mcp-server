@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.prospeo-v2/prospeo-mcp-server",
+  "description": "Prospeo: Find, search, and enrich people and companies with verified emails and mobile numbers.",
+  "repository": {
+    "url": "https://github.com/prospeo-v2/prospeo-mcp-server",
+    "source": "github"
+  },
+  "version": "1.0.1",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.prospeo.io",
+      "headers": [
+        {
+          "name": "X-KEY",
+          "description": "Prospeo API key. Alternative to OAuth for clients that don't support it. Get one at https://app.prospeo.io/api",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@prospeo/prospeo-mcp-server",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "PROSPEO_API_KEY",
+          "description": "Your Prospeo API key. Get one at https://app.prospeo.io/api",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
