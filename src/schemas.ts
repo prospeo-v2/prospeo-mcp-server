@@ -302,7 +302,9 @@ export const EnrichPersonSchema = z
   })
   .describe(
     "Enrich a single person — find their professional email and/or mobile. " +
-      "Provide at least one of: linkedin_url, email, person_id, or (first_name/full_name + company_name/company_website). " +
+      "Pass EVERY identifier you have, not just the minimum — more fields means higher match rate. " +
+      "If you know the LinkedIn URL, send it AND name AND company; if you know the name and company, send first_name + last_name + full_name + company_name + company_website + company_linkedin_url together. " +
+      "Minimum to attempt a match: linkedin_url, email, person_id, or (first_name/full_name + company_name/company_website/company_linkedin_url). " +
       "If enriching MULTIPLE people (e.g. all results from a search), prefer bulk_enrich_person instead — same per-record cost, one call instead of many."
   );
 
@@ -332,7 +334,9 @@ const BulkEnrichPersonRecord = z
     company_linkedin_url: z.string().url().optional().describe("Company LinkedIn URL"),
   })
   .describe(
-    "Minimum match requirements: linkedin_url, email, person_id, OR (first_name+last_name / full_name) + (company_name / company_website / company_linkedin_url)."
+    "Pass EVERY identifier you have for this person — more fields means higher match rate. " +
+      "If you have a LinkedIn URL, still send name + company alongside it; if you have a name + company, send first_name + last_name + full_name + company_name + company_website + company_linkedin_url together. " +
+      "Minimum to attempt a match: linkedin_url, email, person_id, OR (first_name+last_name / full_name) + (company_name / company_website / company_linkedin_url)."
   );
 
 export const BulkEnrichPersonSchema = z
@@ -361,6 +365,7 @@ export const BulkEnrichPersonSchema = z
   .describe(
     "Enrich up to 25 people in one call — the canonical follow-up to search_person. " +
       "Pass each search result's person_id as a record; the matched.identifier in the response will equal that person_id so you can stitch results back to the original list. " +
+      "When records come from outside Prospeo (e.g. scraped names, CRM rows), pass EVERY identifier you have per record — first_name + last_name + full_name + company_name + company_website + company_linkedin_url + linkedin_url all together — rather than the bare minimum. " +
       "Same per-record credit cost as enrich_person."
   );
 
@@ -379,7 +384,9 @@ export const EnrichCompanySchema = z
   })
   .describe(
     "Enrich a company — get full profile including headcount, industry, revenue range, tech stack, and more. " +
-      "Provide at least one of: company_website (preferred), company_linkedin_url, company_name, or company_id."
+      "Pass EVERY identifier you have, not just the minimum — more fields means higher match rate. " +
+      "If you know the website, send it AND company_name AND company_linkedin_url together; pass company_id too when you have it from a prior result. " +
+      "Minimum to attempt a match: company_website (preferred), company_linkedin_url, company_name, or company_id."
   );
 
 export type EnrichCompanyInput = z.infer<typeof EnrichCompanySchema>;
@@ -403,7 +410,9 @@ const BulkEnrichCompanyRecord = z
     company_id: z.string().optional().describe("Prospeo company_id from a prior search/enrich result"),
   })
   .describe(
-    "Minimum match requirements: one of company_id, company_website, company_linkedin_url, or company_name."
+    "Pass EVERY identifier you have for this company — more fields means higher match rate. " +
+      "If you have a website, still send company_name and company_linkedin_url alongside it; pass company_id too when it's known from a prior result. " +
+      "Minimum to attempt a match: one of company_id, company_website, company_linkedin_url, or company_name."
   );
 
 export const BulkEnrichCompanySchema = z
@@ -418,6 +427,7 @@ export const BulkEnrichCompanySchema = z
     "Enrich up to 50 companies in one call — the canonical lookup tool when you already have company names/domains (e.g. CRM exports, account lists, competitor maps). " +
       "Each match returns the full company profile: headcount, industry, revenue, tech stack, funding, attributes, job postings, social links. " +
       "Identifier defaults to company_id when provided, so passing search_company results back is trivial. " +
+      "When records come from outside Prospeo (CRM rows, scraped lists), pass EVERY identifier you have per record — company_name + company_website + company_linkedin_url all together — rather than the bare minimum. " +
       "1 credit per matched company. Use search_company instead when you don't yet know which companies to target."
   );
 
@@ -493,6 +503,24 @@ const CompanyFilters = {
       include_all: z.boolean().optional(),
       include_company_description: z.boolean().optional(),
       include_company_description_seo: z.boolean().optional(),
+    })
+    .optional(),
+
+  /**
+   * Filter companies by buying-intent topics they're researching.
+   * `topic_ids` are topic NAMES (e.g. "Marketing Software", "Cloud Security") the user has
+   * configured in their Prospeo dashboard → Intent settings. Topics not on the user's
+   * account are rejected, and they cannot be discovered via the API — always ASK the user
+   * which topics to filter by; do not guess.
+   * Set any of `in_depth_research`, `active_research`, `early_research` to true to narrow
+   * to those intent stages; omit all three to include any stage.
+   */
+  company_intent: z
+    .object({
+      topic_ids: z.array(z.string()).min(1).max(30),
+      in_depth_research: z.boolean().optional(),
+      active_research: z.boolean().optional(),
+      early_research: z.boolean().optional(),
     })
     .optional(),
 
@@ -801,7 +829,7 @@ const CompanyFilters = {
     .optional(),
 
   /**
-   * Find companies similar to seed companies.
+   * Find companies similar to seed companies. Minimum plan: Starter.
    * Use EXACTLY ONE mode: company_oids OR icp_text OR domain.
    * person_oids is also accepted but only when used inside search_person.
    * minimum_tier: T1 = strongest match, T3 = broadest. Default T3.
@@ -954,6 +982,19 @@ const PersonFilters = {
     .optional(),
 
   /**
+   * Strict name-only matching. Equivalent to person_search with match_mode='STRICT'.
+   * Use when you have exact name strings to look up; for broader matching that
+   * also searches company name and domain, use person_search instead.
+   * Do not send both person_name and person_search in the same request.
+   */
+  person_name: z
+    .object({
+      include: z.array(z.string().min(1).max(100)).max(500).optional(),
+      exclude: z.array(z.string().min(1).max(100)).max(500).optional(),
+    })
+    .optional(),
+
+  /**
    * Quick free-text search across both person name AND job title fields.
    * For structured searches prefer person_search + person_job_title.
    */
@@ -1021,19 +1062,6 @@ const PersonFilters = {
       mobile: z.array(z.enum(["VERIFIED", "UNAVAILABLE"])).optional(),
       operator: z.enum(["OR", "AND"]).optional(),
       hide_people_with_details_already_revealed: z.boolean().optional(),
-    })
-    .optional(),
-
-  /**
-   * Hide previously-saved / -exported leads. Only effective for leads saved through Prospeo
-   * (dashboard, CRM push, list save). Pure API-only workflows must dedupe separately.
-   */
-  person_duplicate_control: z
-    .object({
-      hide_people_from_all_my_lists: z.boolean().optional(),
-      hide_people_already_exported_before: z.boolean().optional(),
-      hide_people_from_your_lists: z.array(z.string()).max(50).optional(),
-      hide_people_from_exclusion_lists: z.array(z.string()).max(50).optional(),
     })
     .optional(),
 
