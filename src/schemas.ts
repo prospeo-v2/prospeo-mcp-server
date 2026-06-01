@@ -389,7 +389,7 @@ export const EnrichCompanySchema = z
       "Minimum to attempt a match: company_website (preferred), company_linkedin_url, company_name, or company_id."
   );
 
-export type EnrichCompanyInput = z.infer<typeof EnrichCompanySchema>;
+export type EnrichCompanyInput = z.input<typeof EnrichCompanySchema>;
 
 // ---------------------------------------------------------------------------
 // bulk_enrich_company
@@ -582,24 +582,28 @@ const CompanyFilters = {
     .optional(),
 
   /**
-   * Filter by NAICS industry codes (integer codes).
+   * Filter by NAICS industry codes. Pass the `code` field from search_suggestions
+   * verbatim — values are strings to preserve SIC-style leading zeros and to
+   * round-trip cleanly from the suggestion response.
    * Max 100 codes per include/exclude. Use search_suggestions with type='naics' to discover codes.
    */
   company_naics: z
     .object({
-      include: z.array(z.number().int()).max(100).optional(),
-      exclude: z.array(z.number().int()).max(100).optional(),
+      include: z.array(z.string()).max(100).optional(),
+      exclude: z.array(z.string()).max(100).optional(),
     })
     .optional(),
 
   /**
-   * Filter by SIC industry codes (integer codes).
+   * Filter by SIC industry codes. Pass the `code` field from search_suggestions
+   * verbatim — values are strings because SIC codes like "0111" (Wheat) have
+   * leading zeros that would be lost as integers.
    * Max 100 codes per include/exclude. Use search_suggestions with type='sic' to discover codes.
    */
   company_sics: z
     .object({
-      include: z.array(z.number().int()).max(100).optional(),
-      exclude: z.array(z.number().int()).max(100).optional(),
+      include: z.array(z.string()).max(100).optional(),
+      exclude: z.array(z.string()).max(100).optional(),
     })
     .optional(),
 
@@ -1015,6 +1019,7 @@ const PersonFilters = {
       smart_intensity: z.enum(["LOOSE", "NORMAL", "STRICT"]).optional(),
       boolean_search: z.string().max(5000).optional(),
     })
+    .strict()
     .optional(),
 
   /**
@@ -1170,7 +1175,7 @@ export const SearchCompanySchema = z
   .describe(
     "Search Prospeo's company database using typed filters. " +
       "Returns up to 25 companies per page (max 1000 pages). Costs 1 credit per page that returns results. " +
-      "Pass any company_id from results to enrich_company for the full profile."
+      "Search results already include the summary fields (name, website, industry, headcount, revenue range, location, funding, keywords) — only call enrich_company / bulk_enrich_company when you specifically need the deeper profile (tech stack, attributes, job postings, descriptions, social URLs, phone), since each match costs 1 additional credit."
   );
 
 export type SearchCompanyInput = z.input<typeof SearchCompanySchema>;

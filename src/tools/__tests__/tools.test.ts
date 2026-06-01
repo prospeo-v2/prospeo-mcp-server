@@ -254,18 +254,13 @@ describe("bulkEnrichCompany", () => {
 
 // ─── Test 9: schema validation — clean break on legacy fields ─────────────────
 describe("schema validation", () => {
-  it("rejects legacy match_only_exact_job_titles boolean shape", () => {
+  it("rejects unknown keys in person_job_title", () => {
     const parsed = SearchPersonSchema.safeParse({
       filters: {
         person_job_title: { include: ["CEO"], match_only_exact_job_titles: true },
       },
     });
-    // Zod silently strips unknown keys by default. Verify match_only_exact_job_titles is dropped
-    // and match_mode is the supported reshape.
-    expect(parsed.success).toBe(true);
-    if (parsed.success) {
-      expect((parsed.data.filters.person_job_title as Record<string, unknown>).match_only_exact_job_titles).toBeUndefined();
-    }
+    expect(parsed.success).toBe(false);
   });
 
   it("rejects invalid seniority values", () => {
