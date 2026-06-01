@@ -366,7 +366,8 @@ export const BulkEnrichPersonSchema = z
     "Enrich up to 25 people in one call — the canonical follow-up to search_person. " +
       "Pass each search result's person_id as a record; the matched.identifier in the response will equal that person_id so you can stitch results back to the original list. " +
       "When records come from outside Prospeo (e.g. scraped names, CRM rows), pass EVERY identifier you have per record — first_name + last_name + full_name + company_name + company_website + company_linkedin_url + linkedin_url all together — rather than the bare minimum. " +
-      "Same per-record credit cost as enrich_person."
+      "Same per-record credit cost as enrich_person. " +
+      "Returns a compact response per record (no job_history, no skills, abbreviated company summary) — use enrich_person if you need the full profile for a specific person."
   );
 
 export type BulkEnrichPersonInput = z.input<typeof BulkEnrichPersonSchema>;
@@ -420,11 +421,11 @@ export const BulkEnrichCompanySchema = z
     data: z
       .array(BulkEnrichCompanyRecord)
       .min(1)
-      .max(50)
-      .describe("Up to 50 company records to enrich in a single request."),
+      .max(25)
+      .describe("Up to 25 company records to enrich in a single request."),
   })
   .describe(
-    "Enrich up to 50 companies in one call — the canonical lookup tool when you already have company names/domains (e.g. CRM exports, account lists, competitor maps). " +
+    "Enrich up to 25 companies in one call — the canonical lookup tool when you already have company names/domains (e.g. CRM exports, account lists, competitor maps). " +
       "Each match returns the full company profile: headcount, industry, revenue, tech stack, funding, attributes, job postings, social links. " +
       "Identifier defaults to company_id when provided, so passing search_company results back is trivial. " +
       "When records come from outside Prospeo (CRM rows, scraped lists), pass EVERY identifier you have per record — company_name + company_website + company_linkedin_url all together — rather than the bare minimum. " +

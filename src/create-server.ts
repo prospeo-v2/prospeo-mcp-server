@@ -73,6 +73,7 @@ const TOOLS: Tool[] = [
       "Pass each search result's person_id as a record; the matched.identifier in the response equals that person_id so you can stitch results back to the original list. " +
       "Per-record cost is identical to enrich_person (1 credit per matched email, 10 per matched email+mobile). " +
       "Response also includes free_enrichment per record so you can attribute credit consumption. " +
+      "Returns a compact response per record (no job_history, no skills, abbreviated company summary) — use enrich_person if you need the full profile for a specific person. " +
       "For >25 records, call this multiple times — do not auto-batch.",
     inputSchema: zodToJsonSchema(BulkEnrichPersonSchema) as Tool["inputSchema"],
     annotations: { title: "Bulk Enrich People", readOnlyHint: true, destructiveHint: false, openWorldHint: true },
@@ -90,7 +91,7 @@ const TOOLS: Tool[] = [
   {
     name: "bulk_enrich_company",
     description:
-      "Enrich up to 50 companies in ONE call — the canonical lookup tool when you already have a list of company names/domains (CRM exports, account lists, competitor maps). " +
+      "Enrich up to 25 companies in ONE call — the canonical lookup tool when you already have a list of company names/domains (CRM exports, account lists, competitor maps). " +
       "Each record needs one of: company_id, company_website, company_linkedin_url, or company_name. " +
       "Returns the full company profile per match (tech stack, attributes, funding, job postings — same shape as enrich_company). " +
       "identifier defaults to company_id when provided so search_company → bulk_enrich_company chains correlate without extra bookkeeping. " +

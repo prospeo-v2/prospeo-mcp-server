@@ -6,8 +6,11 @@ Works with any MCP-compatible client: **Claude**, **Cursor**, **Windsurf**, **Cl
 
 ## Features
 
+- **Search Suggestions** — Free helper to resolve canonical filter values for locations, job titles, technologies, industries, NAICS, and SIC codes (no credits consumed)
 - **Enrich Person** — Find professional email and mobile phone from a name, LinkedIn URL, or email
+- **Bulk Enrich People** — Enrich up to 25 people in a single call — the canonical follow-up to `search_person`
 - **Enrich Company** — Get full company profile: headcount, industry, revenue, tech stack, funding, social links
+- **Bulk Enrich Companies** — Enrich up to 25 companies in a single call from a list of names or domains
 - **Search People** — Query Prospeo's professional database with filters (job title, seniority, location, company size, etc.)
 - **Search Companies** — Query Prospeo's company database with filters (industry, headcount, technology, revenue, etc.)
 - **Account Info** — Check credits remaining, plan, and renewal date (free, no credits consumed)
@@ -80,35 +83,55 @@ Add to your MCP settings (refer to your client's documentation):
 
 ## Tools
 
+### search_suggestions
+
+Resolve canonical filter values before building a search. Free endpoint — does not consume credits. Rate limited to 15 req/sec.
+
+Call this first whenever the user mentions a location, technology, industry, job title, or NAICS / SIC code — guessing strings (e.g. "SF" vs "San Francisco, California, United States") causes empty searches.
+
+**Supported types:** `location`, `job_title`, `technology`, `industry`, `naics`, `sic`.
+
 ### enrich_person
 
-Find the professional email address and/or mobile phone number for a person.
+Find the professional email address and/or mobile phone number for a person. Use `bulk_enrich_person` instead when you have multiple people to enrich (same per-record cost, one call instead of many).
 
 **Required input** (at least one):
 - `linkedin_url` — Person's LinkedIn profile URL
 - `email` — Known email address
+- `person_id` — From a prior `search_person` result
 - `first_name` + `last_name` + `company_name` or `company_website`
+
+### bulk_enrich_person
+
+Enrich up to 25 people in a single call — the canonical follow-up to `search_person`. Pass each result's `person_id` as a record; the `matched.identifier` in the response equals that `person_id` so you can stitch results back to the original list.
+
+Per-record credit cost is identical to `enrich_person` (1 credit per matched email, 10 per matched email + mobile). Returns a compact response per record (no `job_history`, no `skills`, abbreviated company summary) — use `enrich_person` if you need the full profile for a specific person.
 
 ### enrich_company
 
-Get a full company profile including headcount, industry, revenue, tech stack, funding, and social links.
+Get a full company profile including headcount, industry, revenue, tech stack, funding, social links, attributes, and job postings.
 
 **Required input** (at least one):
 - `company_website` (recommended, most accurate)
 - `company_name`
 - `company_linkedin_url`
+- `company_id` — From a prior search or enrich result
+
+### bulk_enrich_company
+
+Enrich up to 25 companies in a single call — the canonical lookup tool when you already have a list of company names or domains (CRM exports, account lists, competitor maps). Returns the full company profile per match. 1 credit per matched company. `identifier` defaults to `company_id` when provided so chaining from `search_company` results is trivial.
 
 ### search_person
 
 Search Prospeo's professional database using typed filters. Returns up to 25 results per page. Costs 1 credit per page of results.
 
-**Filters include:** `person_job_title`, `person_seniority`, `person_location_search`, `company_industry`, `company_headcount_range`, `company_technology`, and more.
+**Filters include:** `person_job_title`, `person_seniority`, `person_location_search`, `company_industry`, `company_headcount_range`, `company_technology`, `person_search`, `person_name`, `person_job_change`, `person_contact_details`, and more.
 
 ### search_company
 
 Search Prospeo's company database using typed filters. Returns up to 25 results per page. Costs 1 credit per page of results.
 
-**Filters include:** `company_industry`, `company_headcount_range`, `company_location_search`, `company_technology`, `company_revenue`, `company_funding`, and more.
+**Filters include:** `company_industry`, `company_headcount_range`, `company_location_search`, `company_technology`, `company_revenue`, `company_funding`, `company_intent`, `company_icp`, `company_lookalike`, `company_key_execs`, `company_website_traffic`, `company_integrations`, and more.
 
 ### get_account_info
 

@@ -244,9 +244,9 @@ describe("bulkEnrichCompany", () => {
     expect(parsed.data.matched[0].company.attributes.has_soc2).toBe(true);
   });
 
-  it("rejects more than 50 records", () => {
+  it("rejects more than 25 records", () => {
     const parsed = BulkEnrichCompanySchema.safeParse({
-      data: Array.from({ length: 51 }, (_, i) => ({ company_id: `c${i}` })),
+      data: Array.from({ length: 26 }, (_, i) => ({ company_id: `c${i}` })),
     });
     expect(parsed.success).toBe(false);
   });
