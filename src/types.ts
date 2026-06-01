@@ -200,3 +200,81 @@ export interface AccountInfoAPIResponse extends ProspeoAPIResponse {
     next_quota_renewal_date: string;
   };
 }
+
+// ---------------------------------------------------------------------------
+// /search-suggestions
+// ---------------------------------------------------------------------------
+
+export interface LocationSuggestion {
+  name: string;
+  type: "COUNTRY" | "STATE" | "CITY" | "ZONE";
+}
+
+export interface CodeSuggestion {
+  code: string;
+  label: string;
+}
+
+export interface SearchSuggestionsAPIResponse extends ProspeoAPIResponse {
+  location_suggestions?: LocationSuggestion[] | null;
+  job_title_suggestions?: string[] | null;
+  technology_suggestions?: string[] | null;
+  industry_suggestions?: string[] | null;
+  naics_suggestions?: CodeSuggestion[] | null;
+  sic_suggestions?: CodeSuggestion[] | null;
+}
+
+// ---------------------------------------------------------------------------
+// /bulk-enrich-person
+// ---------------------------------------------------------------------------
+
+export interface BulkEnrichPersonMatched {
+  identifier: string;
+  free_enrichment?: boolean;
+  person?: PersonInfo | null;
+  company?: CompanyInfo | null;
+}
+
+export interface BulkEnrichPersonNotMatched {
+  identifier: string;
+  reason?: string;
+}
+
+export interface BulkEnrichPersonInvalid {
+  identifier?: string;
+  reason?: string;
+}
+
+export interface BulkEnrichPersonAPIResponse extends ProspeoAPIResponse {
+  matched?: BulkEnrichPersonMatched[];
+  not_matched?: BulkEnrichPersonNotMatched[];
+  invalid_datapoints?: BulkEnrichPersonInvalid[];
+  total_cost?: number;
+}
+
+// ---------------------------------------------------------------------------
+// /bulk-enrich-company
+// ---------------------------------------------------------------------------
+
+export interface BulkEnrichCompanyMatched {
+  identifier: string;
+  free_enrichment?: boolean;
+  company?: CompanyInfo | null;
+}
+
+export interface BulkEnrichCompanyNotMatched {
+  identifier: string;
+  reason?: string;
+}
+
+export interface BulkEnrichCompanyInvalid {
+  identifier?: string;
+  reason?: string;
+}
+
+export interface BulkEnrichCompanyAPIResponse extends ProspeoAPIResponse {
+  matched?: BulkEnrichCompanyMatched[];
+  not_matched?: BulkEnrichCompanyNotMatched[];
+  invalid_datapoints?: BulkEnrichCompanyInvalid[];
+  total_cost?: number;
+}
