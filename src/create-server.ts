@@ -37,6 +37,7 @@ import { bulkEnrichPerson } from "./tools/bulk-enrich-person.js";
 import { bulkEnrichCompany } from "./tools/bulk-enrich-company.js";
 
 import type { AccountInfoAPIResponse, ToolResult } from "./types.js";
+import { callPublicTool, type PublicTool } from "./public-tools.js";
 
 // ---------------------------------------------------------------------------
 // Tool definitions — registered with the MCP server
@@ -147,7 +148,7 @@ const TOOLS: Tool[] = [
  * @param serverConfig - Server-level config (base URL, timeout, log level)
  * @returns A ready-to-connect MCP Server
  */
-export function createMCPServer(apiKey: string, serverConfig: ServerConfig): Server {
+export function createMCPServer(apiKey: string, serverConfig: ServerConfig, publicTools: readonly PublicTool[] = []): Server {
   const config: ProspeoConfig = { apiKey, ...serverConfig };
   const client = new ProspeoAPIClient(config);
 
@@ -162,7 +163,7 @@ export function createMCPServer(apiKey: string, serverConfig: ServerConfig): Ser
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     logger.debug("ListTools requested");
-    return { tools: TOOLS };
+    return { tools: [...TOOLS, ...publicTools.map(binding => binding.tool)] };
   });
 
   // ---------------------------------------------------------------------------
@@ -175,6 +176,8 @@ export function createMCPServer(apiKey: string, serverConfig: ServerConfig): Ser
     logger.info(`Tool called: ${name}`);
 
     try {
+      const publicTool = publicTools.find(binding => binding.tool.name === name);
+      if (publicTool) return await callPublicTool(publicTool, args, client);
       switch (name) {
         case "search_suggestions": {
           const parsed = SearchSuggestionsSchema.safeParse(args);

@@ -20,10 +20,12 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 
 import { loadServerConfig } from "./config/index.js";
 import { createMCPServer } from "./create-server.js";
+import { loadPublicTools } from "./public-tools.js";
 import { validateBearerToken } from "./utils/jwt.js";
 import { logger } from "./utils/logger.js";
 
 const serverConfig = loadServerConfig();
+const publicTools = await loadPublicTools(serverConfig);
 const PORT = parseInt(process.env.PORT || "3000", 10);
 
 /** Maximum request body size in bytes (1 MB). */
@@ -388,7 +390,7 @@ const httpServer = createHTTPServer(async (req, res) => {
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined, // stateless — no session tracking
     });
-    const server = createMCPServer(apiKey, serverConfig);
+    const server = createMCPServer(apiKey, serverConfig, publicTools);
     await server.connect(transport);
 
     // Handle the MCP request

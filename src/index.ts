@@ -21,6 +21,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { loadConfig } from "./config/index.js";
 import { createMCPServer } from "./create-server.js";
 import { logger } from "./utils/logger.js";
+import { loadPublicTools } from "./public-tools.js";
 
 // ---------------------------------------------------------------------------
 // Server setup — stdio transport for local subprocess mode (npx)
@@ -36,7 +37,8 @@ async function main(): Promise<void> {
     transport: "stdio",
   });
 
-  const server = createMCPServer(config.apiKey, config);
+  const publicTools = await loadPublicTools(config);
+  const server = createMCPServer(config.apiKey, config, publicTools);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
