@@ -7,6 +7,8 @@
 export interface ServerConfig {
   /** Base URL for the Prospeo public API (no trailing slash) */
   apiBaseUrl: string;
+  /** Public tool API prefix; must match the backend API_V2_STR. */
+  apiV2Prefix: string;
   /** Request timeout in milliseconds */
   timeoutMs: number;
   /** Log level: DEBUG | INFO | WARN | ERROR */
@@ -24,6 +26,7 @@ export interface ProspeoConfig extends ServerConfig {
 export function loadServerConfig(): ServerConfig {
   return {
     apiBaseUrl: (process.env.PROSPEO_API_BASE_URL || "https://api.prospeo.io").replace(/\/$/, ""),
+    apiV2Prefix: process.env.PROSPEO_API_V2_PREFIX ?? "/api/v2",
     timeoutMs: parseInt(process.env.PROSPEO_TIMEOUT || "30000", 10),
     logLevel: (process.env.LOG_LEVEL || "INFO").toUpperCase(),
   };

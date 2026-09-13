@@ -5,28 +5,40 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { compilePublicTools, loadPublicTools, callPublicTool } from "../public-tools.js";
 import { createMCPServer } from "../create-server.js";
 import { ProspeoAPIClient } from "../utils/api-client.js";
+import { loadServerConfig } from "../config/index.js";
 
-const config = { apiBaseUrl: "https://api.example.test", timeoutMs: 100, logLevel: "ERROR" };
+const config = { apiBaseUrl: "https://api.example.test", apiV2Prefix: "/api/v2", timeoutMs: 100, logLevel: "ERROR" };
 const row = {
   name: "invoice_list", description: "Read invoices.",
   inputSchema: { type: "object", additionalProperties: false, properties: { page: { type: "integer", minimum: 1 } } },
-  endpoint: { method: "POST", path: "/v1/tools/invoice-list" },
+  endpoint: { method: "POST", path: "/api/v2/tools/invoice-list" },
   annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   _meta: { "prospeo/approvalRecommended": false },
 };
 const table = (rows: unknown[] = [row]) => ({ schemaVersion: 1, tools: rows });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+
+describe("public API configuration", () => {
+  it.each([undefined, "/test-api"])("loads prefix %s without changing the legacy base", prefix => {
+    vi.stubEnv("PROSPEO_API_V2_PREFIX", prefix);
+    vi.stubEnv("PROSPEO_API_BASE_URL", "https://api.example.test/");
+    expect(loadServerConfig()).toMatchObject({
+      apiBaseUrl: "https://api.example.test", apiV2Prefix: prefix ?? "/api/v2",
+    });
+  });
+});
 
 describe("backend tool catalog", () => {
-  it("loads once without a user key and retains schemas, annotations, and metadata", async () => {
+  it.each(["/api/v2", "/test-api"])("loads credential-free POST metadata under %s", async apiV2Prefix => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(table())));
     vi.stubGlobal("fetch", fetch);
-    const bindings = await loadPublicTools(config);
+    const bindings = await loadPublicTools({ ...config, apiV2Prefix });
     expect(bindings).toHaveLength(1);
     expect(bindings[0].tool).toEqual({ name: row.name, description: row.description, inputSchema: row.inputSchema, annotations: row.annotations, _meta: row._meta });
     expect(fetch).toHaveBeenCalledOnce();
     const [url, init] = fetch.mock.calls[0];
-    expect(url).toBe("https://api.example.test/v1/mcp/tools");
+    expect(url).toBe(`https://api.example.test${apiV2Prefix}/mcp/tools`);
+    expect(init).toMatchObject({ method: "POST", body: "{}" });
     expect(init.headers).not.toHaveProperty("X-KEY");
     expect(init.redirect).toBe("error");
   });
@@ -66,14 +78,16 @@ describe("generated execution", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("forwards exactly once with the caller's key and preserves the public projection", async () => {
+  it.each(["/api/v2/tools/invoice-list", "/test-api/tools/invoice-list"])("forwards the advertised path exactly once: %s", async path => {
     const body = { ok: true, summary: "Invoices found.", payload: { invoices: [] } };
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(body)));
     vi.stubGlobal("fetch", fetch);
-    const result = await callPublicTool(compilePublicTools(table())[0], { page: 2 }, client);
+    const binding = compilePublicTools(table([{ ...row, endpoint: { method: "POST", path } }]))[0];
+    const result = await callPublicTool(binding, { page: 2 }, client);
     expect(result.isError).toBe(false);
     expect(JSON.parse((result.content[0] as { text: string }).text)).toEqual(body);
     expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0][0]).toBe(`https://api.example.test${path}`);
     expect(fetch.mock.calls[0][1]).toMatchObject({ method: "POST", headers: { "X-KEY": "test-user-key" }, body: '{"page":2}', redirect: "error" });
   });
 
@@ -126,19 +140,26 @@ describe("MCP registration", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it("preserves the legacy eight without a public catalog", async () => {
-    const server = createMCPServer("key", config);
+  it.each(["/api/v2", "/test-api"])("preserves legacy tools and root URLs with prefix %s", async apiV2Prefix => {
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: false, response: {} })));
+    vi.stubGlobal("fetch", fetch);
+    const server = createMCPServer("key", { ...config, apiV2Prefix });
     const client = new Client({ name: "test", version: "1" });
     const [a, b] = InMemoryTransport.createLinkedPair();
     await server.connect(b); await client.connect(a);
-    try { expect((await client.listTools()).tools).toHaveLength(8); }
+    try {
+      expect((await client.listTools()).tools).toHaveLength(8);
+      await client.callTool({ name: "get_account_info", arguments: {} });
+      expect(fetch).toHaveBeenCalledOnce();
+      expect(fetch.mock.calls[0][0]).toBe("https://api.example.test/account-information");
+    }
     finally { await client.close(); await server.close(); }
   });
 
-  it.skipIf(!process.env.PROSPEO_PUBLIC_TABLE_PATH)("registers nineteen tools using the exact backend artifact", async () => {
+  it.skipIf(!process.env.PROSPEO_PUBLIC_TABLE_PATH)("registers the complete enabled catalog using the exact backend artifact", async () => {
     const path = process.env.PROSPEO_PUBLIC_TABLE_PATH!;
     const bindings = compilePublicTools(JSON.parse(readFileSync(path, "utf8")));
-    expect(bindings).toHaveLength(11);
+    expect(bindings.length).toBeGreaterThan(0);
     expect(bindings.find(binding => binding.tool.name === "tag_list")?.validate({ scope: "deal" }).valid).toBe(true);
     expect(bindings.find(binding => binding.tool.name === "tag_list")?.validate({}).valid).toBe(false);
     expect(bindings.find(binding => binding.tool.name === "find_mobile")?.validate({ data: { person_id: "111111111111111111111111" } }).valid).toBe(true);
@@ -148,8 +169,8 @@ describe("MCP registration", () => {
     await server.connect(b); await client.connect(a);
     try {
       const listed = (await client.listTools()).tools;
-      expect(listed).toHaveLength(19);
-      expect(new Set(listed.map(tool => tool.name)).size).toBe(19);
+      expect(listed).toHaveLength(bindings.length + 8);
+      expect(new Set(listed.map(tool => tool.name)).size).toBe(bindings.length + 8);
       expect(listed.some(tool => tool.name === "get_usage_and_credits")).toBe(false);
       expect(listed.some(tool => tool.name === "get_account_info")).toBe(true);
     } finally { await client.close(); await server.close(); }

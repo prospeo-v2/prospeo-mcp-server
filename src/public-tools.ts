@@ -56,7 +56,7 @@ export async function loadPublicTools(config: ServerConfig): Promise<PublicTool[
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
   try {
-    const response = await fetch(`${config.apiBaseUrl}/v1/mcp/tools`, {
+    const response = await fetch(`${config.apiBaseUrl}${config.apiV2Prefix}/mcp/tools`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
       signal: controller.signal, redirect: "error",
     });
