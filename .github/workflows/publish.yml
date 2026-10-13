@@ -48,15 +48,24 @@ jobs:
 
       # Trusted publishing (OIDC): no npm token, provenance is attached automatically.
       # Skipped on re-runs where the version is already on npm.
+      # npm takes a few minutes to make a new version public, and the MCP Registry
+      # rejects versions it can't see yet, so wait for it.
       - name: Publish to npm
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if npm view "$(jq -r .name package.json)@$VERSION" version >/dev/null 2>&1; then
+          spec="$(jq -r .name package.json)@$VERSION"
+          if npm view "$spec" version >/dev/null 2>&1; then
             echo "Version already on npm, skipping"
-          else
-            npm publish
+            exit 0
           fi
+          npm publish
+          for _ in $(seq 60); do
+            npm view "$spec" version >/dev/null 2>&1 && exit 0
+            sleep 10
+          done
+          echo "::error::$spec is still not visible on npm after 10 minutes"
+          exit 1
 
       - name: Install mcp-publisher
         run: |
