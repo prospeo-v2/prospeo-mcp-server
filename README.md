@@ -199,6 +199,10 @@ See our privacy policy: [https://prospeo.io/privacy-policy](https://prospeo.io/p
 - REST API Documentation: [https://prospeo.io/api-docs](https://prospeo.io/api-docs)
 - Issues: [https://github.com/prospeo-v2/prospeo-mcp-server/issues](https://github.com/prospeo-v2/prospeo-mcp-server/issues)
 
+## Releasing
+
+Run the **Publish** workflow from the Actions tab on `main` and pick `patch`, `minor` or `major`. It bumps the version in `package.json` and `server.json`, publishes to npm and the MCP Registry, then commits and tags the release.
+
 ## License
 
 MIT
