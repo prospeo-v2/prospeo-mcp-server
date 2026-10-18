@@ -79,9 +79,50 @@ Add to your MCP settings (refer to your client's documentation):
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `PROSPEO_API_KEY` | Yes (stdio mode) | — | Your Prospeo API key. Get one at [app.prospeo.io/api](https://app.prospeo.io/api) |
+| `PROSPEO_API_BASE_URL` | No | `https://api.prospeo.io` | API base URL; legacy endpoints remain relative to this base |
+| `PROSPEO_API_V2_PREFIX` | No | `/api/v2` | Must match backend `API_V2_STR`, for example `/test-api` |
 | `LOG_LEVEL` | No | `INFO` | Logging level: `DEBUG`, `INFO`, `WARN`, `ERROR` |
 
 ## Tools
+
+### Backend-provided tools
+
+At startup, both stdio and hosted HTTP load `POST /api/v2/mcp/tools` from the configured
+Prospeo API. The table supplies the tool names, strict input schemas, annotations,
+and public endpoint bindings. Calls are validated against those schemas and forwarded
+with the caller's API key. Hosted connections share the compiled startup table;
+each call retains its own authenticated key.
+
+The table covers enabled, implemented canonical server tools with public
+bindings, excluding internal helpers, browser tools, and legacy aliases. Coverage
+follows the backend catalog rather than a fixed tool count. The eight compatibility
+tools documented below remain available; canonical `get_usage_and_credits`
+remains available as `get_account_info`.
+
+Metadata loads without user credentials from the API base URL plus
+`PROSPEO_API_V2_PREFIX` plus `/mcp/tools`. The prefix defaults to `/api/v2` and
+must match backend `API_V2_STR`. For `/test-api`, startup fetches
+`POST /test-api/mcp/tools`. Generated calls use the exact server-root path in the
+table; the prefix is not added again. Keep the base URL unchanged so legacy tools
+continue calling their existing root-level endpoints.
+
+An API-key call directly authorizes the operation, including a possible credit
+charge. The `prospeo/approvalRecommended` and `prospeo/credits` metadata allow
+clients to present their own confirmation. Find Mobile uses normal member credit
+limits and returns a receipt and record link; the revealed phone value is read in
+the authenticated product. Thread search searches only the key owner's private chats.
+
+If the table cannot be fetched or validated, the server starts with the eight
+compatibility tools and records the degradation. Restart the MCP process after a
+backend catalog release to load newly shipped tools. Coordinate backend, Assistant,
+and MCP availability in the same release window.
+
+Generated tool responses preserve the public JSON projection. Failed tool calls
+set MCP `isError: true` and return a JSON error with `code` and `message`.
+
+For contract verification, set `PROSPEO_PUBLIC_TABLE_PATH` to the JSON table emitted
+by the backend public-tool tests and run `npm test`. Also run `npm run build` and
+`npm run build:http`.
 
 ### search_suggestions
 

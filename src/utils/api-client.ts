@@ -9,6 +9,25 @@ export class ProspeoAPIClient {
     this.config = config;
   }
 
+  /** Execute a generated public binding once, without logging request or response bodies. */
+  async requestPublicTool(method: "POST" | "GET", path: string, body: unknown): Promise<{ status: number; body: unknown }> {
+    if (!/^\/[a-zA-Z0-9][a-zA-Z0-9/-]*$/.test(path)) throw new Error("Invalid public endpoint");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
+    try {
+      const response = await fetch(`${this.config.apiBaseUrl}${path}`, {
+        method,
+        headers: { "Content-Type": "application/json", "X-KEY": this.config.apiKey },
+        body: method === "POST" ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+        redirect: "error",
+      });
+      return { status: response.status, body: await response.json() };
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   /**
    * POST a JSON body to the given Prospeo API path.
    *
