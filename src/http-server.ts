@@ -23,6 +23,7 @@ import { createMCPServer } from "./create-server.js";
 import { loadPublicTools } from "./public-tools.js";
 import { validateBearerToken } from "./utils/jwt.js";
 import { logger } from "./utils/logger.js";
+import { recordMcpMessage } from "./utils/newrelic.js";
 
 const serverConfig = loadServerConfig();
 const publicTools = await loadPublicTools(serverConfig);
@@ -385,6 +386,7 @@ const httpServer = createHTTPServer(async (req, res) => {
 
   try {
     const body = await parseBody(req);
+    recordMcpMessage(body);
 
     // Create a fresh transport and server for this request
     const transport = new StreamableHTTPServerTransport({
