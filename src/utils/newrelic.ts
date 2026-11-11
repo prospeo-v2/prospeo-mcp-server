@@ -5,20 +5,22 @@ interface NewRelicApi {
 }
 
 // The hosted image preloads the agent only when a license key is set (docker/start-http-server.sh).
-const agent: NewRelicApi | undefined = process.env.NEW_RELIC_LICENSE_KEY
+const newRelic: NewRelicApi | undefined = process.env.NEW_RELIC_LICENSE_KEY
   ? (createRequire(import.meta.url)("newrelic") as NewRelicApi)
   : undefined;
 
-/** The JSON-RPC method of an MCP message and, for tool calls, the tool name. */
-export function describeMcpMessage(body: unknown): Record<string, string> {
+/** New Relic attributes for one MCP message: its JSON-RPC method and, for tool calls, the tool name. */
+export function mcpMessageAttributes(body: unknown): Record<string, string> {
   if (typeof body !== "object" || body === null || Array.isArray(body)) return {};
   const { method, params } = body as { method?: unknown; params?: { name?: unknown } };
   if (typeof method !== "string") return {};
-  const toolName = method === "tools/call" ? params?.name : undefined;
-  return typeof toolName === "string" ? { "mcp.method": method, "mcp.tool": toolName } : { "mcp.method": method };
+
+  const attributes: Record<string, string> = { "mcp.method": method };
+  if (method === "tools/call" && typeof params?.name === "string") attributes["mcp.tool"] = params.name;
+  return attributes;
 }
 
-/** Tag the current New Relic transaction with the MCP message it handles. */
+/** Tag the current New Relic transaction with the MCP message it handles. No-op without the agent. */
 export function recordMcpMessage(body: unknown): void {
-  agent?.addCustomAttributes(describeMcpMessage(body));
+  newRelic?.addCustomAttributes(mcpMessageAttributes(body));
 }

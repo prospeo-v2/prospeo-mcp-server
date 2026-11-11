@@ -1,20 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { describeMcpMessage } from "../utils/newrelic.js";
+import { mcpMessageAttributes } from "../utils/newrelic.js";
 
-describe("describeMcpMessage", () => {
-  it("names the tool on tool calls", () => {
-    const body = { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "enrich_person", arguments: {} } };
-    expect(describeMcpMessage(body)).toEqual({ "mcp.method": "tools/call", "mcp.tool": "enrich_person" });
+const message = (method: unknown, params?: unknown) => ({ jsonrpc: "2.0", id: 1, method, params });
+
+describe("mcpMessageAttributes", () => {
+  it("adds the tool name to tool calls", () => {
+    expect(mcpMessageAttributes(message("tools/call", { name: "enrich_person", arguments: {} }))).toEqual({
+      "mcp.method": "tools/call",
+      "mcp.tool": "enrich_person",
+    });
   });
 
-  it.each(["initialize", "tools/list", "notifications/initialized"])("records only the method for %s", method => {
-    expect(describeMcpMessage({ jsonrpc: "2.0", method, params: { name: "ignored" } })).toEqual({ "mcp.method": method });
+  it("omits the tool name when a tool call has none", () => {
+    expect(mcpMessageAttributes(message("tools/call", {}))).toEqual({ "mcp.method": "tools/call" });
   });
 
-  it.each([undefined, null, "text", [{ method: "tools/call" }], { id: 1 }, { method: 7 }])(
-    "records nothing for %j",
+  it.each(["initialize", "tools/list", "notifications/initialized"])("keeps only the method for %s", method => {
+    expect(mcpMessageAttributes(message(method, { name: "not-a-tool" }))).toEqual({ "mcp.method": method });
+  });
+
+  it.each([undefined, null, "text", [message("tools/call")], { id: 1 }, message(7)])(
+    "returns no attributes for a body without a single method: %j",
     body => {
-      expect(describeMcpMessage(body)).toEqual({});
+      expect(mcpMessageAttributes(body)).toEqual({});
     },
   );
 });
