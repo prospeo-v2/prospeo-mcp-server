@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM public.ecr.aws/docker/library/node:22-alpine AS builder
 # Installed for the hosted image only, kept out of the published npm package.
 ARG NEW_RELIC_AGENT_VERSION=14.12.0
 WORKDIR /app
@@ -7,7 +7,7 @@ RUN npm ci && npm install --no-save "newrelic@${NEW_RELIC_AGENT_VERSION}"
 COPY . .
 RUN npm run build:http
 
-FROM node:22-alpine
+FROM public.ecr.aws/docker/library/node:22-alpine
 RUN apk add --no-cache tini
 WORKDIR /app
 COPY --from=builder /app/dist-http ./dist-http
